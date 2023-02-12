@@ -1,0 +1,36 @@
+---
+title: "final project"
+author: "Luis Ambrocio"
+date: "1/9/2021"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## objective
+
+the objective is to create a shiny app with the following characteristics:
+
+1.  Some form of input (widget: textbox, radio button, checkbox, ...)
+2.  Some operation on the ui input in sever.R
+3.  Some reactive output displayed as a result of server calculations
+4.  You must also include enough documentation so that a novice user could use your application.
+5.  The documentation should be at the Shiny website itself. Do not post to an external link.
+
+## description of the app
+
+This app fits a polynomial model to a data set composed of a variable $x$ and a variable $y$, the polynomial can be up to degree 4 and the user can choose how many data the model will fit, it is also you can make a prediction of $y$ given a value of $x$.
+
+**note: the data was made up**
+
+## app photo
+
+![](C:/Users/luism/AppData/Local/RStudio/tmp/paste-27F529CA.png){width="598"}
+
+## app links
+
+-   app: <https://manuel-al-unam.shinyapps.io/final_proyect_coursera/>
+-   app documentation: <https://rpubs.com/manuel_al/803618>
+-   github repository: [https://github.com/luismanuel2/project-shiny--app](https://github.com/luismanuel2/project-shiny–app)

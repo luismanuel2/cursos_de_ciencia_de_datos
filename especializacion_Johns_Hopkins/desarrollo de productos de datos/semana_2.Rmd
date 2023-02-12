@@ -1,0 +1,177 @@
+---
+title: "semana 2"
+author: "Luis Ambrocio"
+date: "17/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,fig.align = "center")
+```
+
+# leaflet 
+
+**Introducción**
+
+Leaflet es una de las bibliotecas de JavaScript más populares para crear mapas interactivos. El paquete de leaflet R le permite crear sus propios mapas de leaflet sin necesidad de conocer ningún Javascript.
+
+
+
+
+Comenzar con el leaflet es fácil. La función `leaflet ()` crea un widget de mapa que puede almacenar en una variable para que pueda modificar el mapa más adelante. Puede agregar entidades al mapa usando el operador de tubería (`%>%`) como en dplyr. La función `addTiles()` agrega datos de mapas de [Open Street Map](http://www.openstreetmap.org/).
+
+```{r}
+library(leaflet)
+my_map <- leaflet() %>% 
+  addTiles()
+my_map
+```
+
+
+**Agregar marcadores**
+
+Puede agregar marcadores a su mapa de uno en uno usando la función `addMarkers()` especificando la longitud y latitud. ([Aquí](https://twitter.com/drob/status/719927537330040832) un consejo si tiende a mezclarlos.) Puede especificar texto emergente para cuando haga clic en el marcador con el argumento `popup`.
+
+```{r}
+library(leaflet)
+my_map <- my_map %>%
+  addMarkers(lat=39.2980803, lng=-76.5898801, 
+             popup="Jeff Leek's Office")
+my_map
+```
+
+
+**Agregar muchos marcadores**
+
+Agregar un marcador a la vez a menudo no es práctico si desea mostrar muchos marcadores. Si tiene un marco de datos con columnas `lat` y` lng`, puede canalizar ese marco de datos en `leaflet ()` para agregar todos los puntos a la vez.
+
+```{r}
+set.seed(2016-04-25)
+df <- data.frame(lat = runif(20, min = 39.2, max = 39.3),
+                 lng = runif(20, min = -76.6, max = -76.5))
+df %>% 
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers()
+```
+
+
+
+**Hacer marcadores personalizados**
+
+Los marcadores azules con los que viene empaquetado el prospecto pueden no ser suficientes dependiendo de lo que esté mapeando. Afortunadamente, puede crear sus propios marcadores a partir de archivos `.png`.
+
+```{r}
+hopkinsIcon <- makeIcon(
+  iconUrl = "https://upload.wikimedia.org/wikipedia/commons/c/ca/Escudo-UNAM-escalable.svg",
+  iconWidth = 31*215/230, iconHeight = 31,
+  iconAnchorX = 31*215/230/2, iconAnchorY = 16
+)
+
+hopkinsLatLong <- data.frame(
+  lat = c(39.2973166, 39.3288851, 39.2906617),
+  lng = c(-76.5929798, -76.6206598, -76.5469683))
+
+hopkinsLatLong %>% 
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(icon = hopkinsIcon)
+```
+
+**Agregar múltiples ventanas emergentes**
+
+Al agregar varios marcadores a un mapa, es posible que desee agregar ventanas emergentes para cada marcador. Puede especificar una cadena de texto sin formato para cada ventana emergente, o puede proporcionar HTML que se procesará dentro de cada ventana emergente.
+
+```{r}
+hopkinsSites <- c(
+  "<a href='http://www.jhsph.edu/'>East Baltimore Campus</a>",
+  "<a href='https://apply.jhu.edu/visit/homewood/'>Homewood Campus</a>",
+  "<a href='http://www.hopkinsmedicine.org/johns_hopkins_bayview/'>Bayview Medical Center</a>",
+  "<a href='http://www.peabody.jhu.edu/'>Peabody Institute</a>",
+  "<a href='http://carey.jhu.edu/'>Carey Business School</a>"
+)
+
+hopkinsLatLong %>% 
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(icon = hopkinsIcon, popup = hopkinsSites)
+```
+
+
+**Mapeo de clústeres**
+
+A veces, puede tener tantos puntos en un mapa que no tiene sentido trazar cada marcador. En estas situaciones, el folleto le permite trazar grupos de marcadores usando `addMarkers(clusterOptions = markerClusterOptions())`. Cuando amplíe cada grupo, los grupos se separarán hasta que pueda ver los marcadores individuales.
+
+```{r}
+df <- data.frame(lat = runif(500, min = 39.25, max = 39.35),
+                 lng = runif(500, min = -76.65, max = -76.55))
+df %>% 
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(clusterOptions = markerClusterOptions())
+```
+
+
+**Mapeo de marcadores circulares**
+
+En lugar de agregar marcadores o grupos, puede agregar fácilmente marcadores circulares usando `addCircleMarkers ()`.
+
+```{r}
+df <- data.frame(lat = runif(20, min = 39.25, max = 39.35),
+                 lng = runif(20, min = -76.65, max = -76.55))
+df %>% 
+  leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers()
+```
+
+
+**Círculos de dibujo**
+
+Puede dibujar formas arbitrarias en los mapas que cree, incluidos círculos y cuadrados. El siguiente código dibuja un mapa donde el círculo de cada ciudad es proporcional a la población de esa ciudad.
+
+```{r}
+md_cities <- data.frame(name = c("Baltimore", "Frederick", "Rockville", "Gaithersburg", 
+                                 "Bowie", "Hagerstown", "Annapolis", "College Park", "Salisbury", "Laurel"),
+                        pop = c(619493, 66169, 62334, 61045, 55232,
+                                39890, 38880, 30587, 30484, 25346),
+                        lat = c(39.2920592, 39.4143921, 39.0840, 39.1434, 39.0068, 39.6418, 38.9784, 38.9897, 38.3607, 39.0993),
+                        lng = c(-76.6077852, -77.4204875, -77.1528, -77.2014, -76.7791, -77.7200, -76.4922, -76.9378, -75.5994, -76.8483))
+md_cities %>%
+  leaflet() %>%
+  addTiles() %>%
+  addCircles(weight = 1, radius = sqrt(md_cities$pop) * 30)
+```
+
+**dibujando rectangulos**
+
+
+
+```{r}
+leaflet() %>%
+  addTiles() %>%
+  addRectangles(lat1 = 37.3858, lng1 = -122.0595, 
+                lat2 = 37.3890, lng2 = -122.0625)
+```
+
+
+Agregar una leyenda puede ser útil si tiene marcadores en su mapa con diferentes colores:
+
+```{r}
+df <- data.frame(lat = runif(20, min = 39.25, max = 39.35),
+                 lng = runif(20, min = -76.65, max = -76.55),
+                 col = sample(c("red", "blue", "green"), 20, replace = TRUE),
+                 stringsAsFactors = FALSE)
+
+df %>%
+  leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(color = df$col) %>%
+  addLegend(labels = LETTERS[1:3], colors = c("blue", "red", "green"))
+```
+
+
+
+## más información 
+
+Para más detalles sobre el paquete R leaflet http://rstudio.github.io/leaflet/.

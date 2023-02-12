@@ -1,0 +1,691 @@
+---
+title: "semana 2 "
+author: "luis"
+date: "2/7/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,fig.align = "center")
+```
+
+\tableofcontents
+
+# division de datos
+
+1. Submiestra aleatoria 
+
+Division 75% para conjunto de entrenamiento y 25% para conjunto de prueba 
+
+```{r}
+library(caret); library(kernlab); data(spam)
+inTrain <- createDataPartition(y=spam$type,
+                              p=0.75, list=FALSE)
+training <- spam[inTrain,]
+testing <- spam[-inTrain,]
+dim(training)
+```
+
+2. K-fold:
+
+* conjunto de entrenamiento
+
+```{r}
+set.seed(32323)
+folds <- createFolds(y=spam$type,k=10,
+                             list=TRUE,returnTrain=TRUE)
+sapply(folds,length)
+folds[[1]][1:10]
+```
+
+* conjunto de prueba 
+
+```{r}
+set.seed(32323)
+folds <- createFolds(y=spam$type,k=10,
+                             list=TRUE,returnTrain=FALSE)
+sapply(folds,length)
+folds[[1]][1:10]
+```
+3. Remuestreo 
+
+```{r}
+set.seed(32323)
+folds <- createResample(y=spam$type,times=10,
+                             list=TRUE)
+sapply(folds,length)
+folds[[1]][1:10]
+```
+4. Time Slices
+
+```{r}
+set.seed(32323)
+tme <- 1:1000
+folds <- createTimeSlices(y=tme,initialWindow=20,
+                          horizon=10)
+names(folds)
+folds$train[[1]]
+folds$test[[1]]
+folds$train[[2]]
+folds$test[[2]]
+folds$train[[971]]
+folds$test[[971]]
+```
+
+# opciones de entrenamiento 
+
+Opciones por default 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("C:/Users/luism/Pictures/Screenshots/Captura de pantalla 2021-07-02 203221.png")
+```
+
+Opciones métricas
+
+__Resultados continuos__:
+  * _RMSE_ = Error cuadrático medio de raíz
+  * _RSquared_ = $R^2$ de modelos de regresión
+
+__Resultados categóricos__:
+  * _Accuracy_ = Fracción correcta
+  * _Kappa_ = Una medida de [concordancia](http://en.wikipedia.org/wiki/Cohen%27s_kappa)
+  
+*Para traincontro*
+
+```{r}
+args(trainControl)
+```
+
+remuestreo trainControl
+
+* _method_
+   * _boot_ = arranque
+   * _boot632_ = bootstrapping con ajuste
+   * _cv_ = validación cruzada
+   * _repeatedcv_ = validación cruzada repetida
+   * _LOOCV_ = dejar una validación cruzada
+* _numbers_
+   * Para validación de arranque / cruzada
+   * Número de submuestras a tomar
+* _repeat_ 
+   * Número de veces que se repite el submuestreo
+   * Si es grande, esto puede _ralentizar las cosas_
+
+# trazar predictores 
+
+Usaremos datos salariales
+
+```{r}
+library(ISLR); library(ggplot2); library(caret); library(gridExtra);
+data(Wage)
+summary(Wage)
+```
+Dividiendo los conjuntos de datos
+
+```{r}
+inTrain <- createDataPartition(y=Wage$wage,
+                              p=0.7, list=FALSE)
+training <- Wage[inTrain,]
+testing <- Wage[-inTrain,]
+dim(training); dim(testing)
+```
+grafico de caracteristicas 
+
+```{r}
+featurePlot(x=training[,c("age","education","jobclass")],
+            y = training$wage,
+            plot="pairs")
+```
+grafico de dispercion 
+
+```{r}
+library(ggplot2)
+qplot(age,wage,colour=jobclass,data=training)
+```
+
+grafico de disppercion con regresion lineal 
+
+```{r}
+qq <- qplot(age,wage,colour=education,data=training)
+qq +  geom_smooth(method='lm',formula=y~x)
+```
+crando subcategorias y haciendo boxplot
+
+```{r}
+library(Hmisc)
+cutWage <- cut2(training$wage,g=3)
+table(cutWage)
+p1 <- qplot(cutWage,age, data=training,fill=cutWage,
+      geom=c("boxplot"))
+p1
+```
+```{r}
+cutWage <- cut2(training$FlyAsh,g=4)
+table(cutWage)
+
+qplot(1:nrow(training),training$CompressiveStrength,colour=cutWage,geom = "point")
+
+qplot(training$FlyAsh,training$CompressiveStrength)
+```
+```{r}
+qplot(training$Superplasticizer)
+range(training$Superplasticizer)
+```
+```{r}
+nam<-names(training)
+colu<-str_subset(nam,"^IL")
+dat<-select(training,colu)
+preProc <- preProcess(training,method="pca")
+pc<-prcomp(scale(dat))
+```
+```{r}
+library(caret)
+library(AppliedPredictiveModeling)
+set.seed(3433);data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]];training = adData[ inTrain,]
+testing = adData[-inTrain,]
+
+nam<-names(training)
+colu<-str_subset(nam,"^IL")
+dat<-select(training,diagnosis,colu)
+preProc <- preProcess(dat[,-1],method="pca",pcaComp = 7)
+trainPC <- predict(preProc,dat[,-1])
+trainPC$y<-dat$diagnosis
+train(y ~.,method="glm",data=trainPC)
+train(diagnosis~.,method="glm",data=dat)
+```
+
+boxplot con puntos superpuestos
+
+```{r}
+p2 <- qplot(cutWage,age, data=training,fill=cutWage,
+      geom=c("boxplot","jitter"))
+grid.arrange(p1,p2,ncol=2)
+```
+
+tablas 
+
+```{r}
+t1 <- table(cutWage,training$jobclass)
+t1
+prop.table(t1,1)
+```
+
+Graficos de densidad 
+
+```{r}
+qplot(wage,colour=education,data=training,geom="density")
+```
+
+*Notas y lectura adicional*
+
+* Haz tus parcelas solo en el set de entrenamiento
+   * ¡No utilice el equipo de prueba para explorar!
+* Cosas que deberías buscar
+   * Desequilibrio en los resultados / predictores
+   * Valores atípicos
+   * Grupos de puntos no explicados por un predictor
+   * Variables sesgadas
+
+# preprocesamiento básico 
+
+la Standarizacion 
+
+```{r}
+library(caret); library(kernlab); data(spam)
+inTrain <- createDataPartition(y=spam$type,
+                              p=0.75, list=FALSE)
+training <- spam[inTrain,]
+testing <- spam[-inTrain,]
+# entrenamiento 
+trainCapAve <- training$capitalAve
+trainCapAveS <- (trainCapAve  - mean(trainCapAve))/sd(trainCapAve) 
+mean(trainCapAveS)
+sd(trainCapAveS)
+
+# prueba 
+testCapAve <- testing$capitalAve
+testCapAveS <- (testCapAve  - mean(trainCapAve))/sd(trainCapAve) 
+mean(testCapAveS)
+sd(testCapAveS)
+```
+
+con _preProcess_ function
+
+```{r}
+preObj <- preProcess(training[,-58],method=c("center","scale"))
+trainCapAveS <- predict(preObj,training[,-58])$capitalAve
+mean(trainCapAveS)
+sd(trainCapAveS)
+
+testCapAveS <- predict(preObj,testing[,-58])$capitalAve
+mean(testCapAveS)
+sd(testCapAveS)
+```
+
+_preProcess_ como argumento 
+
+```{r}
+set.seed(32343)
+modelFit <- train(type ~.,data=training,
+                  preProcess=c("center","scale"),method="glm")
+modelFit
+```
+
+transformacion  box cox para hacer mas "normales" los datos 
+
+```{r}
+preObj <- preProcess(training[,-58],method=c("BoxCox"))
+trainCapAveS <- predict(preObj,training[,-58])$capitalAve
+par(mfrow=c(1,2)); hist(trainCapAveS); qqnorm(trainCapAveS)
+```
+
+
+Para eliminar NA's y estandarizar 
+
+```{r}
+set.seed(13343)
+
+# Make some values NA
+training$capAve <- training$capitalAve
+selectNA <- rbinom(dim(training)[1],size=1,prob=0.05)==1
+training$capAve[selectNA] <- NA
+
+# Impute and standardize
+preObj <- preProcess(training[,-58],method="knnImpute")
+capAve <- predict(preObj,training[,-58])$capAve
+
+# Standardize true values
+capAveTruth <- training$capitalAve
+capAveTruth <- (capAveTruth-mean(capAveTruth))/sd(capAveTruth)
+```
+
+comparando los cuantiles 
+```{r}
+quantile(capAve - capAveTruth)
+quantile((capAve - capAveTruth)[selectNA])
+quantile((capAve - capAveTruth)[!selectNA])
+```
+
+*Notas y lectura adicional*
+
+* El entrenamiento y la prueba deben procesarse de la misma manera.
+* Es probable que las transformaciones de prueba sean imperfectas
+   * Especialmente si los conjuntos de prueba / entrenamiento se recopilaron en diferentes momentos
+* ¡Cuidado al transformar variables factoriales!
+* [preprocesamiento con intercalación](http://caret.r-forge.r-project.org/preprocess.html)
+
+# Creacion de covariables 
+
+Hay dos niveles para crear covariables
+
+1. De datos brutos a covariables
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/covCreation1.png")
+```
+
+2. Transformando covariables 
+```{r}
+library(kernlab);data(spam)
+spam$capitalAveSq <- spam$capitalAve^2
+```
+
+*Nivel 1, datos brutos -> covariables*
+
+* Depende en gran medida de la aplicación
+* El acto de equilibrio es el resumen frente a la pérdida de información.
+* Ejemplos:
+   * Archivos de texto: frecuencia de palabras, frecuencia de frases ([Google ngrams] (https://books.google.com/ngrams)), frecuencia de letras mayúsculas.
+   * Imágenes: bordes, esquinas, manchas, crestas ([detección de características de visión por computadora] (http://en.wikipedia.org/wiki/Feature_detection_ (computer_vision)))
+   * Páginas web: número y tipo de imágenes, posición de los elementos, colores, videos ([Pruebas A / B] (http://en.wikipedia.org/wiki/A/B_testing))
+   * Personas: Altura, peso, color de pelo, sexo, país de origen.
+* Cuanto más conocimiento tenga del sistema, mejor será el trabajo que hará.
+* En caso de duda, opte por más funciones
+* Se puede automatizar, ¡pero tenga cuidado!
+
+*Nivel 2, covariables ordenadas -> nuevas covariables*
+
+* Más necesario para algunos métodos (regresión, svms) que para otros (árboles de clasificación).
+* Debe realizarse _solo en el conjunto de entrenamiento_
+* El mejor enfoque es a través del análisis exploratorio (gráficos / tablas)
+* Se deben agregar nuevas covariables a los marcos de datos
+
+Usaremos datos de sueldo como ejemplo 
+
+```{r}
+library(ISLR); library(caret); data(Wage);
+inTrain <- createDataPartition(y=Wage$wage,
+                              p=0.7, list=FALSE)
+training <- Wage[inTrain,]; testing <- Wage[-inTrain,]
+```
+
+1. agregar variables ficticias
+
+__Idea básica: convertir variables de factor en [variables indicadoras](http://bit.ly/19ZhWB6)__
+```{r}
+table(training$jobclass)
+dummies <- dummyVars(wage ~ jobclass,data=training)
+head(predict(dummies,newdata=training))
+```
+
+2. Eliminar covariables cero
+
+
+```{r}
+nsv <- nearZeroVar(training,saveMetrics=TRUE)
+nsv
+```
+3. spline
+
+```{r}
+library(splines)
+bsBasis <- bs(training$age,df=3) 
+head(bsBasis)
+```
+
+_See also_: ns(),poly()
+
+ajustando curvas:
+
+```{r}
+lm1 <- lm(wage ~ bsBasis,data=training)
+plot(training$age,training$wage,pch=19,cex=0.5)
+points(training$age,predict(lm1,newdata=training),col="red",pch=19,cex=0.5)
+```
+
+En el conjunto de prueba 
+
+```{r}
+head(predict(bsBasis,age=testing$age))
+```
+
+*Notas y lectura adicional*
+
+* Creación de características de nivel 1 (datos sin procesar a covariables)
+   * La ciencia es clave. Google "extracción de caracteristicas para [tipo de datos]"
+   * Errar en la creación excesiva de caracteristicas 
+   * En algunas aplicaciones (imágenes, voces) la creación automática de funciones es posible / necesaria
+     * http://www.cs.nyu.edu/~yann/talks/lecun-ranzato-icml2013.pdf
+* Creación de características de nivel 2 (covariables a nuevas covariables)
+   * La función _preProcess_ en _caret_ manejará algunos preprocesos.
+   * Cree nuevas covariables si cree que mejorarán el ajuste
+   * Utilice un análisis exploratorio en el conjunto de entrenamiento para crearlos.
+   * ¡Tenga cuidado con el sobreajuste!
+* [preprocesamiento con intercalación](http://caret.r-forge.r-project.org/preprocess.html)
+* Si desea ajustar modelos de spline, use el método _gam_ en el paquete _caret_ que permite suavizar múltiples variables.
+* Más información sobre la creación de características / ordenación de datos en el curso Obtención de datos de la pista del curso Ciencia de datos.
+
+# PCA
+
+Sirve para Predictores correlacionados,y disminuye el número total de predictores 
+
+```{r}
+library(caret); library(kernlab); data(spam)
+inTrain <- createDataPartition(y=spam$type,
+                              p=0.75, list=FALSE)
+training <- spam[inTrain,]
+testing <- spam[-inTrain,]
+
+# obtiene las covarianzas altas 
+M <- abs(cor(training[,-58]))
+diag(M) <- 0
+which(M > 0.8,arr.ind=T)
+```
+
+tenemos 2 predictores correlacionados en la columna 32 y 34 
+
+```{r}
+names(spam)[c(34,32)]
+plot(spam[,34],spam[,32])
+```
+
+idea basica  de PCA
+
+* Puede que no necesitemos todos los predictores
+* Una combinación ponderada de predictores podría ser mejor
+* Debemos elegir esta combinación para capturar la "mayor información" posible
+* Beneficios
+   * Número reducido de predictores
+   * Reducción de ruido (debido al promedio)
+   
+Problemas relacionados
+
+Tiene variables multivariadas $X_1, \ldots, X_n$ entonces $X_1=(X_ {11},\ldots,X_ {1m})$
+
+* Encuentre un nuevo conjunto de variables multivariadas que no estén correlacionadas y explique tanta varianza como sea posible.
+* Si junta todas las variables en una matriz, busque la mejor matriz creada con menos variables (rango inferior) que explique los datos originales.
+
+El primer objetivo es estadístico y el segundo objetivo son los datos.
+
+## PCA y SVD 
+
+_SVD_
+
+Si $X$ es una matriz con cada variable en una columna y cada observación en una fila, entonces el SVD es una "descomposición de la matriz"
+
+$$X =UDV^T$$
+donde las columnas de $U$ son ortogonales (vectores singulares izquierdos), las columnas de $V$ son ortogonales (vectores singulares derechos) y $D$ es una matriz diagonal (valores singulares).
+
+_PCA_
+Los componentes principales son iguales a los valores singulares correctos si primero escala (resta la media, divide por la desviación estándar) las variables.
+
+ejemplo utilizando prcomp 
+
+```{r}
+smallSpam <- spam[,c(34,32)]
+prComp <- prcomp(smallSpam)
+plot(prComp$x[,1],prComp$x[,2])
+prComp$rotation
+```
+
+ejemplo en datos SPAM 
+
+```{r}
+typeColor <- ((spam$type=="spam")*1 + 1)
+prComp <- prcomp(log10(spam[,-58]+1))
+plot(prComp$x[,1],prComp$x[,2],col=typeColor,xlab="PC1",ylab="PC2")
+```
+
+PCA con caret 
+
+```{r}
+preProc <- preProcess(log10(spam[,-58]+1),method="pca",pcaComp=2)
+spamPC <- predict(preProc,log10(spam[,-58]+1))
+plot(spamPC[,1],spamPC[,2],col=typeColor)
+```
+
+lo mismo *"a mano"*
+```{r}
+dat<-log10(spam[,-58]+1)
+prComp <- prcomp(dat)
+pr<-prComp$rotation[,1:2]
+PC<-as.matrix(dat) %*%as.matrix(pr)
+plot(PC[,1],PC[,2],col=typeColor)
+```
+
+```{r}
+dat<-log10(spam[,-58]+1)
+dat<-scale(dat)
+prComp <- prcomp(dat)
+pr<-prComp$rotation[,1:2]
+PC<-as.matrix(dat) %*%as.matrix(pr)
+plot(PC[,1],PC[,2],col=typeColor)
+```
+
+
+preprocesando con PCA pon preProcess
+
+```{r}
+preProc <- preProcess(log10(training[,-58]+1),method="pca",pcaComp=2)
+trainPC <- predict(preProc,log10(training[,-58]+1))
+trainPC$y<-training$type
+modelFit <- train(y ~.,method="glm",data=trainPC)
+
+testPC <- predict(preProc,log10(testing[,-58]+1))
+confusionMatrix(testing$type,predict(modelFit,testPC))
+```
+
+agregados a la funcion train
+```{r}
+
+modelFit <- train(type ~ .,method="glm",preProcess="pca",data=training)
+confusionMatrix(testing$type,predict(modelFit,testing))
+```
+
+  
+## Reflexiones finales sobre las PC
+
+* Más útil para modelos de tipo lineal
+* Puede dificultar la interpretación de los predictores.
+* ¡Cuidado con los valores atípicos!
+   * Transformar primero (con logs/ Box Cox)
+   * Trazar predictores para identificar problemas
+* Para obtener más información, consulte
+   * Análisis exploratorio de datos
+   * [Elementos de aprendizaje estadístico](http://statweb.stanford.edu/~tibs/ElemStatLearn/)
+
+# Predicciones con regresion lineal 
+
+utilizando datos de Erupciones "Old faithful"
+
+```{r}
+library(caret);data(faithful); set.seed(333)
+inTrain <- createDataPartition(y=faithful$waiting,
+                              p=0.5, list=FALSE)
+trainFaith <- faithful[inTrain,]; testFaith <- faithful[-inTrain,]
+head(trainFaith)
+```
+
+ Eruption duration versus waiting time
+ 
+```{r}
+plot(trainFaith$waiting,trainFaith$eruptions,pch=19,col="blue",xlab="Waiting",ylab="Duration")
+```
+ajustando un modelo de la manera comun 
+
+```{r}
+lm1 <- lm(eruptions ~ waiting,data=trainFaith)
+summary(lm1)
+
+plot(trainFaith$waiting,trainFaith$eruptions,pch=19,col="blue",xlab="Waiting",ylab="Duration")
+lines(trainFaith$waiting,lm1$fitted,lwd=3)
+```
+modelando conjunto de entrenamiento y de prueba
+```{r}
+par(mfrow=c(1,2))
+plot(trainFaith$waiting,trainFaith$eruptions,pch=19,col="blue",xlab="Waiting",ylab="Duration")
+lines(trainFaith$waiting,predict(lm1),lwd=3)
+plot(testFaith$waiting,testFaith$eruptions,pch=19,col="blue",xlab="Waiting",ylab="Duration")
+lines(testFaith$waiting,predict(lm1,newdata=testFaith),lwd=3)
+```
+
+Obtener errores de conjunto de entrenamiento / conjunto de prueba
+
+```{r}
+# Calculate RMSE on training
+sqrt(sum((lm1$fitted-trainFaith$eruptions)^2))
+
+# Calculate RMSE on test
+sqrt(sum((predict(lm1,newdata=testFaith)-testFaith$eruptions)^2))
+```
+
+creando intervalos 
+```{r}
+pred1 <- predict(lm1,newdata=testFaith,interval="prediction")
+ord <- order(testFaith$waiting)
+plot(testFaith$waiting,testFaith$eruptions,pch=19,col="blue")
+matlines(testFaith$waiting[ord],pred1[ord,],type="l",,col=c(1,2,2),lty = c(1,1,1), lwd=3)
+```
+
+
+lo mismo con caret 
+```{r}
+modFit <- train(eruptions ~ waiting,data=trainFaith,method="lm")
+summary(modFit$finalModel)
+```
+## Notas y lectura adicional
+
+* Se pueden incluir modelos de regresión con múltiples covariables
+* Suele ser útil en combinación con otros modelos
+* [Elementos del aprendizaje estadístico] (http://www-stat.stanford.edu/~tibs/ElemStatLearn/)
+* [Estadísticas aplicadas modernas con S] (http://www.amazon.com/Modern-Applied-Statistics-W-N-Venables/dp/0387954570)
+* [Introducción al aprendizaje estadístico] (http://www-bcf.usc.edu/~gareth/ISL/)
+
+# prediciendo con regresion lineal multivariable 
+
+utilizaremos los datos de sueldo
+
+```{r}
+library(ISLR); library(ggplot2); library(caret);
+data(Wage); Wage <- subset(Wage,select=-c(logwage))
+
+inTrain <- createDataPartition(y=Wage$wage,
+                              p=0.7, list=FALSE)
+training <- Wage[inTrain,]; testing <- Wage[-inTrain,]
+dim(training); dim(testing)
+```
+
+grafica de caracteristicas 
+
+```{r}
+featurePlot(x=training[,c("age","education","jobclass")],
+            y = training$wage,
+            plot="pairs")
+```
+```{r}
+qplot(age,wage,colour=education,data=training)
+```
+
+ajustando un modelo de regresion lineal con la funcion train
+
+```{r}
+modFit<- train(wage ~ age + jobclass + education,
+               method = "lm",data=training)
+finMod <- modFit$finalModel
+print(modFit)
+```
+diagnosticos 
+
+```{r}
+plot(finMod,1,pch=19,cex=0.5,col="#00000010")
+```
+```{r}
+qplot(finMod$fitted,finMod$residuals,colour=race,data=training)
+```
+
+por indice 
+
+```{r}
+plot(finMod$residuals,pch=19)
+```
+
+Predicción versus verdad en el conjunto de prueba
+
+```{r}
+pred <- predict(modFit, testing)
+qplot(wage,pred,colour=year,data=testing)
+```
+
+usando todas las covariables 
+
+```{r}
+modFitAll<- train(wage ~ .,data=training,method="lm")
+pred <- predict(modFitAll, testing)
+qplot(wage,pred,data=testing)
+```
+
+
+# recursos 
+
+* Caret tutorials:
+  * [http://www.edii.uclm.es/~useR-2013/Tutorials/kuhn/user_caret_2up.pdf](http://www.edii.uclm.es/~useR-2013/Tutorials/kuhn/user_caret_2up.pdf)
+  * [http://cran.r-project.org/web/packages/caret/vignettes/caret.pdf](http://cran.r-project.org/web/packages/caret/vignettes/caret.pdf)
+* A paper introducing the caret package
+  * [http://www.jstatsoft.org/v28/i05/paper](http://www.jstatsoft.org/v28/i05/paper)
+
+
+
+
+

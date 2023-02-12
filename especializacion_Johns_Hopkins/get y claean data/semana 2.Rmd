@@ -1,0 +1,346 @@
+---
+title: "semana_2"
+author: "Luis Ambrocio"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,fig.align = "center")
+```
+
+
+/tableofcontents
+
+
+# Leyendo MySQL
+
+* Software de base de datos de código abierto gratuito y ampliamente utilizado
+* Ampliamente utilizado en aplicaciones basadas en Internet.
+* Los datos están estructurados en
+   * Bases de datos
+   * Tablas dentro de bases de datos
+   * Campos dentro de tablas
+* Cada fila se llama registro
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/03_ObtainingData/database-schema.png")
+```
+
+primero se installa MySQL 
+
+[http://dev.mysql.com/doc/refman/5.7/en/installing.html](http://dev.mysql.com/doc/refman/5.7/en/installing.html)
+
+luego intsalar RMySQL
+
+* Official instructions - [http://biostat.mc.vanderbilt.edu/wiki/Main/RMySQL](http://biostat.mc.vanderbilt.edu/wiki/Main/RMySQL) (may be useful for Mac/UNIX users as well)
+* Potentially useful guide - [http://www.ahschulz.de/2013/07/23/installing-rmysql-under-windows/](http://www.ahschulz.de/2013/07/23/installing-rmysql-under-windows/)  
+
+conectar y enumerar bases de datos
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Pictures/Saved Pictures/mysql1.png")
+```
+
+Conexión a hg19 y listas de tablas
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Pictures/Saved Pictures/mysql2.png")
+```
+
+obteniendo dimenciones de una tabla especifica 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Pictures/Saved Pictures/mysql3.png")
+```
+
+leyendo de la tabla 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Pictures/Saved Pictures/mysql4.png")
+```
+
+seleccionando un subconjunto especifico 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Pictures/Saved Pictures/mysql5.png")
+```
+
+cerrar la conexion 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Pictures/Saved Pictures/mysql6.png")
+```
+
+## Recursos adicionales
+
+* Viñeta RMySQL [http://cran.r-project.org/web/packages/RMySQL/RMySQL.pdf](http://cran.r-project.org/web/packages/RMySQL/RMySQL.pdf)
+* Lista de comandos [http://www.pantz.org/software/mysql/mysqlcommands.html](http://www.pantz.org/software/mysql/mysqlcommands.html)
+   * __No, no elimine, agregue o combine elementos de ensembl. Solo seleccione .__
+   * En general, tenga cuidado con los comandos mysql
+* Una buena publicación de blog que resume algunos otros comandos [http://www.r-bloggers.com/mysql-and-r/](http://www.r-bloggers.com/mysql-and-r/)
+* [http://en.wikipedia.org/wiki/MySQL](http://en.wikipedia.org/wiki/MySQL)
+* [http://www.mysql.com/](http://www.mysql.com/)
+
+# Leyendo HD5F
+
+HDF5
+
+* Se utiliza para almacenar grandes conjuntos de datos.
+* Admite el almacenamiento de una variedad de tipos de datos
+* Formato de datos jerárquico
+* _grupos_ que contienen cero o más conjuntos de datos y metadatos
+   * Tener un _encabezado de grupo_ con el nombre del grupo y una lista de atributos
+   * Tener una _tabla de símbolos de grupo_ con una lista de objetos en el grupo
+* _datasets_ matriz multidimensional de elementos de datos con metadatos
+   * Tener un _encabezado_ con nombre, tipo de datos, espacio de datos y diseño de almacenamiento
+   * Tener un _data array_ con los datos
+
+[http://www.hdfgroup.org/](http://www.hdfgroup.org/)
+
+```{r}
+invisible(if(file.exists("example.h5")){file.remove("example.h5")})
+```
+```{r}
+library(rhdf5)
+file <- h5createFile("example.h5")
+file
+```
+* Esto instalará paquetes de Bioconductor [http://bioconductor.org/](http://bioconductor.org/), que se usa principalmente para genómica pero también tiene buenos paquetes de "big data"
+* Se puede utilizar para interactuar con conjuntos de datos hdf5.
+* Esta conferencia se basa muy de cerca en el tutorial de rhdf5 que
+se puede encontrar aquí [http://www.bioconductor.org/packages/release/bioc/vignettes/rhdf5/inst/doc/rhdf5.pdf](http://www.bioconductor.org/packages/release/bioc/ viñetas / rhdf5 / inst / doc / rhdf5.pdf)
+
+crear grupos 
+
+```{r}
+created = h5createGroup("example.h5","foo")
+created = h5createGroup("example.h5","baa")
+created = h5createGroup("example.h5","foo/foobaa")
+h5ls("example.h5")
+```
+Escribir a grupos
+
+```{r}
+A = matrix(1:10,nr=5,nc=2)
+h5write(A, "example.h5","foo/A")
+B = array(seq(0.1,2.0,by=0.1),dim=c(5,2,2))
+attr(B, "scale") <- "liter"
+h5write(B, "example.h5","foo/foobaa/B")
+h5ls("example.h5")
+```
+
+escribir un conjunto de datos 
+
+```{r}
+df = data.frame(1L:5L,seq(0,1,length.out=5),
+  c("ab","cde","fghi","a","s"), stringsAsFactors=FALSE)
+h5write(df, "example.h5","df")
+h5ls("example.h5")
+```
+
+leyendo datos 
+
+```{r}
+readA = h5read("example.h5","foo/A")
+readB = h5read("example.h5","foo/foobaa/B")
+readdf= h5read("example.h5","df")
+readA
+```
+
+Fragmentos de escritura y lectura
+
+```{r}
+h5write(c(12,13,14),"example.h5","foo/A",index=list(1:3,1))
+h5read("example.h5","foo/A")
+```
+
+## Notas y otros recursos
+
+* hdf5 se puede utilizar para optimizar la lectura / escritura desde el disco en R
+* El tutorial de rhdf5:
+   * [http://www.bioconductor.org/packages/release/bioc/vignettes/rhdf5/inst/doc/rhdf5.pdf](http://www.bioconductor.org/packages/release/bioc/vignettes/rhdf5 /inst/doc/rhdf5.pdf)
+* El grupo HDF tiene información sobre HDF5 en general [http://www.hdfgroup.org/HDF5/](http://www.hdfgroup.org/HDF5/)
+
+# Leyendo datos de la web 
+
+Webscraping
+
+__Webscraping__: Extracción de datos de forma programada del código HTML de sitios web.
+
+* Puede ser una excelente manera de obtener datos [Cómo Netflix hizo ingeniería inversa a Hollywood] (http://www.theatlantic.com/technology/archive/2014/01/how-netflix-reverse-engineered-hollywood/282679/)
+* Muchos sitios web tienen información que puede querer leer programáticamente
+* En algunos casos, esto va en contra de los términos de servicio del sitio web.
+* Intentar leer demasiadas páginas demasiado rápido puede bloquear su dirección IP
+
+ejemplo 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/googlescholar.png")
+```
+
+[http://scholar.google.com/citations?user=HI-I6C0AAAAJ&hl=en](http://scholar.google.com/citations?user=HI-I6C0AAAAJ&hl=en)
+
+```{r}
+con = url("http://scholar.google.com/citations?user=HI-I6C0AAAAJ&hl=en")
+htmlCode = readLines(con)
+close(con)
+```
+
+obteniendo informacion con paquete httr 
+
+```{r}
+library(httr)
+library(XML)
+url <- "http://scholar.google.com/citations?user=HI-I6C0AAAAJ&hl=en"
+html2 = GET(url)
+content2 = content(html2,as="text")
+parsedHtml = htmlParse(content2,asText=TRUE)
+xpathSApply(parsedHtml, "//title", xmlValue)
+```
+accesando a sitios web con contraseña 
+
+```{r}
+pg1 = GET("http://httpbin.org/basic-auth/user/passwd")
+pg1
+
+pg2 = GET("http://httpbin.org/basic-auth/user/passwd",
+    authenticate("user","passwd"))
+pg2
+names(pg2)
+```
+usando handle 
+
+```{r}
+google = handle("http://google.com")
+pg1 = GET(handle=google,path="/")
+pg2 = GET(handle=google,path="search")
+
+pg1
+pg2
+```
+
+## Notas y otros recursos
+
+* R Bloggers tiene varios ejemplos de raspado web [http://www.r-bloggers.com/?s=Web+Scraping](http://www.r-bloggers.com/?s=Web+Scraping )
+* El archivo de ayuda httr tiene ejemplos útiles [http://cran.r-project.org/web/packages/httr/httr.pdf](http://cran.r-project.org/web/packages/httr/ httr.pdf)
+* Ver conferencias posteriores sobre API
+* [http://cran.r-project.org/web/packages/httr/httr.pdf](http://cran.r-project.org/web/packages/httr/httr.pdf)
+* [http://en.wikipedia.org/wiki/Web_scraping](http://en.wikipedia.org/wiki/Web_scraping)
+
+# Leyendo de APIs 
+
+Application programming interfaces(Interfaces de programación de aplicaciones)
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/03_ObtainingData/twitter.png")
+```
+
+crear una cuenta para ingresar a la API 
+
+https://dev.twitter.com/apps
+
+luego crear una "app" y buscar los pasos para acceder a la api, el ejemplo siguiente es de una cuenta ya creada para fines academicos 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Pictures/Saved Pictures/api1.png")
+```
+
+
+convertir a JSON el objeto 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Pictures/Saved Pictures/api2.png")
+```
+
+En general, mira la documentación.
+
+
+* httr permite solicitudes `GET`,` POST`, `PUT`,` DELETE` si está autorizado
+* Puede autenticarse con un nombre de usuario o una contraseña
+* La mayoría de las API modernas usan algo como oauth
+* httr funciona bien con Facebook, Google, Twitter, Githb, etc.
+
+# Reading from other sources
+
+Hay un paquete para eso
+
+* Roger tiene un buen video sobre cómo hay paquetes R para
+la mayoría de las cosas a las que querrá acceder.
+* Aquí voy a revisar brevemente algunos paquetes útiles
+* En general, la mejor forma de averiguar si el paquete R
+existe es el "paquete R del mecanismo de almacenamiento de datos" de Google
+   * Por ejemplo: "Paquete MySQL R"
+   
+*Interactuar más directamente con archivos*
+
+* file: abre una conexión a un archivo de texto
+* url: abre una conexión a una URL
+* gzfile: abre una conexión a un archivo .gz
+* bzfile: abre una conexión a un archivo .bz2
+* _?connections_ para más información
+* Recuerde cerrar conexiones 
+
+## paquete foreing
+
+* Carga datos de Minitab, S, SAS, SPSS, Stata, Systat
+* Funciones básicas _read.foo_
+   * read.arff (Weka)
+   * read.dta (Stata)
+   * read.mtp (Minitab)
+   * read.octave (octava)
+   * read.spss (SPSS)
+   * read.xport (SAS)
+* Consulte la página de ayuda para obtener más detalles.
+
+[http://cran.r-project.org/web/packages/foreign/foreign.pdf](http://cran.r-project.org/web/packages/foreign/foreign.pdf)
+
+## Ejemplos de otros paquetes de bases de datos
+
+* RPostresSQL proporciona una conexión de base de datos compatible con DBI desde R. Tutorial- [https://code.google.com/p/rpostgresql/](https://code.google.com/p/rpostgresql/), archivo de ayuda- [http://cran.r-project.org/web/packages/RPostgreSQL/RPostgreSQL.pdf](http://cran.r-project.org/web/packages/RPostgreSQL/RPostgreSQL.pdf)
+* RODBC proporciona interfaces para múltiples bases de datos, incluidas PostgreQL, MySQL, Microsoft Access y SQLite. Tutorial - [http://cran.r-project.org/web/packages/RODBC/vignettes/RODBC.pdf](http://cran.r-project.org/web/packages/RODBC/vignettes/RODBC. pdf), archivo de ayuda - [http://cran.r-project.org/web/packages/RODBC/RODBC.pdf](http://cran.r-project.org/web/packages/RODBC/RODBC. pdf)
+* RMongo [http://cran.r-project.org/web/packages/RMongo/RMongo.pdf](http://cran.r-project.org/web/packages/RMongo/RMongo.pdf) (ejemplo de Rmongo [http://www.r-bloggers.com/r-and-mongodb/](http://www.r-bloggers.com/r-and-mongodb/)) y [rmongodb](http: //cran.r-project.org/web/packages/rmongodb/rmongodb.pdf) proporcionan interfaces a MongoDb.
+
+## Leer imágenes
+
+* jpeg - [http://cran.r-project.org/web/packages/jpeg/index.html](http://cran.r-project.org/web/packages/jpeg/index.html)
+* readbitmap - [http://cran.r-project.org/web/packages/readbitmap/index.html](http://cran.r-project.org/web/packages/readbitmap/index.html)
+* png - [http://cran.r-project.org/web/packages/png/index.html](http://cran.r-project.org/web/packages/png/index.html)
+* EBImage (Bioconductor) - [http://www.bioconductor.org/packages/2.13/bioc/html/EBImage.html](http://www.bioconductor.org/packages/2.13/bioc/html/EBImage. html)
+
+## Lectura de datos GIS
+
+* rgdal - [http://cran.r-project.org/web/packages/rgdal/index.html](http://cran.r-project.org/web/packages/rgdal/index.html)
+* rgeos - [http://cran.r-project.org/web/packages/rgeos/index.html](http://cran.r-project.org/web/packages/rgeos/index.html)
+* raster - [http://cran.r-project.org/web/packages/raster/index.html](http://cran.r-project.org/web/packages/raster/index.html)
+
+## Leer datos musicales
+
+* tuneR - [http://cran.r-project.org/web/packages/tuneR/](http://cran.r-project.org/web/packages/tuneR/)
+* seewave - [http://rug.mnhn.fr/seewave/](http://rug.mnhn.fr/seewave/)
+
+# leer tablas de web  
+
+En la pagina https://www.ncdc.noaa.gov/snow-and-ice/rsi/ se puede encontrar la siguiente imagen 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("C:/Users/luism/Pictures/Screenshots/Captura de pantalla 2021-08-25 145037.png")
+```
+ 
+y la tabla se obtiene de la siguiente forma 
+
+```{r}
+rio::import("https://www.ncdc.noaa.gov/snow-and-ice/rsi/",format="html")
+```
+
+
+
+
+
+ 
+ 
+
+
+
+
+
+

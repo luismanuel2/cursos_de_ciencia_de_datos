@@ -1,0 +1,515 @@
+---
+title: "semana 3"
+author: "luis"
+date: "11/7/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,fig.align = "center")
+```
+
+\tableofcontents
+
+# prediciendo con arboles 
+
+Ideas claves
+
+* Dividir iterativamente las variables en grupos
+* Evaluar la "homogeneidad" dentro de cada grupo.
+* Dividir de nuevo si es necesario
+
+__Pros__:
+
+* Fácil de interpretar
+* Mejor rendimiento en entornos no lineales
+
+__Contras__:
+
+* Sin poda / validación cruzada puede provocar un sobreajuste
+* Más difícil de estimar la incertidumbre
+* Los resultados pueden variar
+
+ejemplo de un arbol
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/obamaTree.png")
+```
+
+*Algoritmo basico*
+
+1. Comience con todas las variables en un grupo
+2. Encuentre la variable / división que mejor separe los resultados
+3. Divida los datos en dos grupos ("hojas") en esa división ("nodo")
+4. Dentro de cada división, encuentre la mejor variable / división que separe los resultados
+5. Continúe hasta que los grupos sean demasiado pequeños o suficientemente "puros"
+
+
+*medidas de impureza*
+
+$$\hat{p}_{mk} = \frac{1}{N_m}\sum_{x_i\; in \; Leaf \; m}\mathbb{1}(y_i = k)$$
+
+
+
+__Error de clasificación errónea__:
+
+$$ 1 - \hat{p}_{m k(m)}; k(m) = {\rm most; common; k}$$ 
+
+* 0 = pureza perfecta
+* 0.5 = sin pureza
+
+__Índice de Gini__:
+
+$$\sum_{k \neq k'} \hat{p}_{mk} \times \hat{p}_{mk'} = \sum_{k=1}^K \hat{p}_{mk}(1-\hat{p}_{mk}) = 1 - \sum_{k=1}^K p_{mk}^2$$
+
+* 0 = pureza perfecta
+* 0.5 = sin pureza
+
+__Desviación / ganancia de información__:
+
+$$-\sum_{k=1}^K \hat{p}_{mk} \log_2\hat{p}_{mk}$$
+* 0 = pureza perfecta
+* 1 = sin pureza
+
+http://en.wikipedia.org/wiki/Decision_tree_learning
+
+```{r}
+par(mar=c(0,0,0,0)); set.seed(1234); x = rep(1:4,each=4); y = rep(1:4,4)
+plot(x,y,xaxt="n",yaxt="n",cex=3,col=c(rep("blue",15),rep("red",1)),pch=19)
+```
+
+* __Clasificación errónea:__ $1/16 = 0.06$
+* __Gini:__ $1 - [(1/16) ^ 2 + (15/16) ^ 2] = 0.12$
+* __Información:__ $- [1/16 \times log2 (1/16) + 15/16 \times log2 (15/16)] = 0.34$
+
+```{r}
+par(mar=c(0,0,0,0)); 
+plot(x,y,xaxt="n",yaxt="n",cex=3,col=c(rep("blue",8),rep("red",8)),pch=19)
+```
+
+* __Misclassification:__ $8/16 = 0.5$
+* __Gini:__ $1 - [(8/16)^2 + (8/16)^2] = 0.5$
+* __Information:__$-[1/16 \times log2(1/16) + 15/16 \times log2(15/16)] = 1$
+
+ejemplo con datos iris 
+
+```{r}
+library(caret)
+data(iris); library(ggplot2)
+names(iris)
+table(iris$Species)
+
+inTrain <- createDataPartition(y=iris$Species,
+                              p=0.7, list=FALSE)
+training <- iris[inTrain,]
+testing <- iris[-inTrain,]
+dim(training); dim(testing)
+```
+hagaamos una grafica 
+
+```{r}
+qplot(Petal.Width,Sepal.Width,colour=Species,data=training)
+```
+podemos ver claramento que podemos hacer diviciones en la variable petal width para predecir el tipo de especie, ahora hagamos un modelo para predecir especies  
+
+```{r}
+modFit <- train(Species ~ .,method="rpart",data=training)
+print(modFit$finalModel)
+```
+no es muy entendible que digamos, por eso lo graficamos
+
+```{r}
+plot(modFit$finalModel, uniform=TRUE, 
+      main="Classification Tree")
+text(modFit$finalModel, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+```{r}
+library(rattle)
+fancyRpartPlot(modFit$finalModel)
+```
+prediciendo nuevos valores 
+
+```{r}
+predict(modFit,newdata=testing)
+```
+
+
+
+## Notas y recursos adicionales
+
+* Los árboles de clasificación son modelos no lineales
+   * Usan interacciones entre variables
+   * Las transformaciones de datos pueden ser menos importantes (transformaciones monótonas)
+   * Los árboles también se pueden utilizar para problemas de regresión (resultado continuo)
+* Tenga en cuenta que hay varias opciones de construcción de árboles en R tanto en el paquete de intercalación: [party](http://cran.r-project.org/web/packages/party/index.html), 
+[rpart](http://cran.r-project.org/web/packages/rpart/index.html) y fuera del paquete caret - 
+[tree](http://cran.r-project.org/web/packages/tree/index.html)
+* [Introducción al aprendizaje estadístico](http://www-bcf.usc.edu/~gareth/ISL/)
+* [Elementos de aprendizaje estadístico](http://www-stat.stanford.edu/~tibs/ElemStatLearn/)
+* [Árboles de clasificación y regresión](http://www.amazon.com/Classification-Regression-Trees-Leo-Breiman/dp/0412048418)
+# bagging 
+
+
+__Idea básica__:
+
+1. Volver a muestrear casos y volver a calcular las predicciones
+2. Voto medio o mayoritario
+
+__Notas__:
+
+* Sesgo similar
+* Varianza reducida
+* Más útil para funciones no lineales
+
+ejemplo con datos ozono 
+
+```{r}
+data(airquality)
+ozone<-airquality
+names(ozone)<-c("ozone","Solar.R", "Wind", "temperature", "Month","Day")
+head(ozone)
+```
+
+```{r}
+ll <- matrix(NA,nrow=10,ncol=155)
+for(i in 1:10){
+  ss <- sample(1:dim(ozone)[1],replace=T)
+  ozone0 <- ozone[ss,]; ozone0 <- ozone0[order(ozone0$ozone),]
+  loess0 <- loess(temperature ~ ozone,data=ozone0,span=0.2)
+  ll[i,] <- predict(loess0,newdata=data.frame(ozone=1:155))
+}
+```
+
+graficando, la roja es la "media"
+
+```{r}
+plot(ozone$ozone,ozone$temperature,pch=19,cex=0.5)
+for(i in 1:10){lines(1:155,ll[i,],col="grey",lwd=2)}
+lines(1:155,apply(ll,2,mean),col="red",lwd=2)
+```
+
+*con caret*
+
+* Algunos modelos realizan el baggin por usted, en la función `train` considere las opciones de `method`
+   * `bagEarth`
+   * `treebag`
+   * `bagFDA`
+* Alternativamente, puede hacer baggin en cualquier modelo que elija utilizando la función `bag`
+
+```{r}
+predictors = data.frame(ozone=ozone$ozone)
+temperature = ozone$temperature
+treebag <- bag(predictors, temperature, B = 10,
+                bagControl = bagControl(fit = ctreeBag$fit,
+                                        predict = ctreeBag$pred,
+                                        aggregate = ctreeBag$aggregate))
+
+plot(ozone$ozone,temperature,col='lightgrey',pch=19)
+points(ozone$ozone,predict(treebag$fits[[1]]$fit,predictors),pch=19,col="red")
+points(ozone$ozone,predict(treebag,predictors),pch=19,col="blue")
+```
+
+partes de baggin con caret 
+
+```{r}
+ctreeBag$fit
+ctreeBag$pred
+ctreeBag$aggregate
+```
+
+## Notas y otros recursos
+
+__Notas__:
+
+* El bagging es más útil para modelos no lineales
+* Se usa a menudo con árboles: una extensión son bosques aleatorios
+* Varios modelos utilizan bagging en la función _train_ de caret
+
+__Otros recursos__:
+
+* [Embolsado](http://en.wikipedia.org/wiki/Bootstrap_aggregating)
+* [Embolsado y boosting](http://stat.ethz.ch/education/semesters/FS_2008/CompStat/sk-ch8.pdf)
+* [Elementos de aprendizaje estadístico](http://www-stat.stanford.edu/~tibs/ElemStatLearn/)
+
+# Random forests
+
+1. Muestras de Bootstrap
+2. En cada división, las variables de arranque
+3. Cultiva varios árboles y vota
+
+__Pros__:
+
+1. Precisión
+
+__Contras__:
+
+1. Velocidad
+2. Interpretabilidad
+3. Sobreajuste
+
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/forests.png")
+```
+
+ejemplo con datos iris 
+
+```{r}
+data(iris); library(ggplot2);library(caret)
+inTrain <- createDataPartition(y=iris$Species,
+                              p=0.7, list=FALSE)
+training <- iris[inTrain,]
+testing <- iris[-inTrain,]
+
+
+modFit <- train(Species~ .,data=training,method="rf",prox=TRUE)
+modFit
+```
+
+Conseguir un solo árbol
+
+```{r}
+library(randomForest)
+getTree(modFit$finalModel,k=2)
+```
+Creando prototipos (son los taches), Los prototipos son casos "representativos" de un grupo de puntos de datos, dada la matriz de similitud entre los puntos. Son muy similares a los medoides. 
+
+```{r}
+irisP <- classCenter(training[,c(3,4)], training$Species, modFit$finalModel$prox)
+irisP <- as.data.frame(irisP); irisP$Species <- rownames(irisP)
+p <- qplot(Petal.Width, Petal.Length, col=Species,data=training)
+p + geom_point(aes(x=Petal.Width,y=Petal.Length,col=Species),size=5,shape=4,data=irisP)
+```
+
+prediciendo nuevos valores 
+
+```{r}
+pred <- predict(modFit,testing); testing$predRight <- pred==testing$Species
+table(pred,testing$Species)
+
+qplot(Petal.Width,Petal.Length,colour=predRight,data=testing,main="newdata Predictions")
+```
+
+
+## Notas y otros recursos
+
+__Notas__:
+
+* Los bosques aleatorios suelen ser uno de los dos algoritmos de mejor rendimiento junto con el boosting en los concursos de predicción.
+* Los bosques aleatorios son difíciles de interpretar pero a menudo muy precisos.
+* Se debe tener cuidado para evitar el sobreajuste (consulte la función [rfcv](http://cran.r-project.org/web/packages/randomForest/randomForest.pdf))
+
+
+__Otros recursos__:
+
+* [Bosques aleatorios](http://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm)
+* [Wikipedia del bosque aleatorio](http://en.wikipedia.org/wiki/Random_forest)
+* [Elementos de aprendizaje estadístico](http://www-stat.stanford.edu/~tibs/ElemStatLearn/)
+
+# boosting 
+
+Idea básica
+
+1. Tome muchos predictores (posiblemente) débiles
+2. Péselos y súmelos
+3. Obtenga un predictor más fuerte
+
+Idea básica detrás del iboosting 
+
+1. Comience con un conjunto de clasificadores $h_1, \ldots, h_k$
+   * Ejemplos: todos los árboles posibles, todos los modelos de regresión posibles, todos los cortes posibles.
+2. Cree un clasificador que combine funciones de clasificación:
+$f(x) = \rm{sgn}\left(\sum_{t=1}^T \alpha_t h_t(x)\right)$..
+   * El objetivo es minimizar el error (en el conjunto de entrenamiento)
+   * Iterativo, seleccione un $h$ en cada paso
+   * Calcular pesos basados en errores
+   * Subir clasificaciones perdidas y seleccionar los siguientes $h$
+
+ejemplo simple, se trada de crear un clasificador que clasifique entre \textcolor{red}{-} y \textcolor{blue}{+}
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/ada1.png")
+```
+
+el primer clasificador es una linea vertical 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/adar1.png")
+```
+
+para el segundo y tercer clasificador se crea una linea vertical y horizontal 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/ada2.png")
+```
+
+se combinan los 3 predictores
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/ada3.png")
+```
+
+boosting en R
+
+* El boosting se puede usar con cualquier subconjunto de clasificadores
+* Una gran subclase es [aumento de gradiente](http://en.wikipedia.org/wiki/Gradient_boosting)
+* R tiene múltiples bibliotecas de boosting. Las diferencias incluyen la elección de funciones básicas de clasificación y reglas de combinación.
+   * [gbm](http://cran.r-project.org/web/packages/gbm/index.html): boosting con árboles.
+   * [mboost](http://cran.r-project.org/web/packages/mboost/index.html): boosting basado en modelos
+   * [ada](http://cran.r-project.org/web/packages/ada/index.html) - boosting estadístico basado en [regresión logística aditiva](http://projecteuclid.org/DPubS?service= UI & version = 1.0 & verb = Display & handle = euclid.aos / 1016218223)
+   * [gamBoost](http://cran.r-project.org/web/packages/GAMBoost/index.html) para impulsar modelos aditivos generalizados
+* La mayoría de estos están disponibles en el paquete de caret.
+
+ejemplo con datos de sueldo 
+
+```{r}
+library(ISLR); data(Wage); library(ggplot2); library(caret);
+Wage <- subset(Wage,select=-c(logwage))
+inTrain <- createDataPartition(y=Wage$wage,
+                              p=0.7, list=FALSE)
+training <- Wage[inTrain,]; testing <- Wage[-inTrain,]
+
+modFit <- train(wage ~ ., method="gbm",data=training,verbose=FALSE)
+print(modFit)
+```
+
+```{r}
+qplot(predict(modFit,testing),wage,data=testing)
+```
+## Notas y lectura adicional
+
+* Un par de buenos tutoriales para impulsar
+   * Freund y Shapire - [http://www.cc.gatech.edu/~thad/6601-gradAI-fall2013/boosting.pdf](http://www.cc.gatech.edu/~thad/6601-gradAI -fall2013 / boosting.pdf)
+   * Ron Meir- [http://webee.technion.ac.il/people/rmeir/BoostingTutorial.pdf](http://webee.technion.ac.il/people/rmeir/BoostingTutorial.pdf)
+* boosting, bosques aleatorios y conjuntos de modelos son las herramientas más comunes que ganan Kaggle y otros concursos de predicción.
+   * [http://www.netflixprize.com/assets/GrandPrize2009_BPC_BigChaos.pdf](http://www.netflixprize.com/assets/GrandPrize2009_BPC_BigChaos.pdf)
+   * [https://kaggle2.blob.core.windows.net/wiki-files/327/09ccf652-8c1c-4a3d-b979-ce2369c985e4/Willem%20Mestrom%20-%20Milestone%201%20Description%20V2%202.pdf ](https://kaggle2.blob.core.windows.net/wiki-files/327/09ccf652-8c1c-4a3d-b979-ce2369c985e4/Willem%20Mestrom%20-%20Milestone%201%20Description%20V2%202.pdf )
+*[Adaboost on Wikipedia](http://en.wikipedia.org/wiki/AdaBoost)
+
+# prediccion basada en modelos 
+
+*Idea básica*
+
+1. Suponga que los datos siguen un modelo probabilístico
+2. Utilice el teorema de Bayes para identificar clasificadores óptimos
+
+__Pros: __
+
+* Puede aprovechar la estructura de los datos.
+* Puede ser conveniente computacionalmente
+* Son razonablemente precisos en problemas reales.
+
+__Contras:__
+
+* Haga suposiciones adicionales sobre los datos
+* Cuando el modelo es incorrecto, es posible que se reduzca la precisión
+
+1. Nuestro objetivo es construir un modelo paramétrico para distribución condicional $P(Y = k | X = x)$
+2. Un enfoque típico es aplicar el [teorema de Bayes](http://en.wikipedia.org/wiki/Bayes'_theorem):
+$$Pr(Y = k | X=x) = \frac{Pr(X=x|Y=k)Pr(Y=k)}{\sum_{\ell=1}^K Pr(X=x |Y = \ell) Pr(Y=\ell)}$$
+$$Pr(Y = k | X=x) = \frac{f_k(x) \pi_k}{\sum_{\ell = 1}^K f_{\ell}(x) \pi_{\ell}}$$
+
+3. Normalmente, las probabilidades priori $\pi_k$ se establecen de antemano.
+
+4. Una elección común para $f_k(x) = \frac{1}{\sigma_k \sqrt{2 \pi}}e^{-\frac{(x-\mu_k)^2}{\sigma_k^2}}$, la distribucion normal 
+
+5. Estimar los parametros de ($\mu_k$,$\sigma_k^2$)
+
+6. Clasifique en la clase con el valor más alto de $P(Y = k | X = x)$ 
+
+Una variedad de modelos utilizan este enfoque
+
+* El análisis discriminante lineal supone que $f_k (x)$ es gaussiano multivariante con las mismas covarianzas
+* El análisis discriminatorio cuadrático asume que $f_k (x)$ es gaussiano multivariante con diferentes covarianzas
+* [Predicción basada en modelos](http://www.stat.washington.edu/mclust/) asume versiones más complicadas para la matriz de covarianza
+* Naive Bayes asume la independencia entre características para la construcción de modelos
+
+http://statweb.stanford.edu/~tibs/ElemStatLearn/
+
+*Análisis de discriminante lineal*
+
+Análisis Discriminante Lineal (ADL, o LDA por sus siglas en inglés) es una generalización del discriminante lineal de Fisher, un método utilizado en estadística, reconocimiento de patrones y aprendizaje de máquinas para encontrar una combinación lineal de rasgos que caracterizan o separan dos o más clases de objetos o eventos. La combinación resultante puede ser utilizada como un clasificador lineal, o, más comúnmente, para la reducción de dimensiones antes de la posterior clasificación.
+
+LDA está estrechamente relacionado con el análisis de varianza (ANOVA) y el análisis de regresión, el cual también intenta expresar una variable dependiente como la combinación lineal de otras características o medidas. Sin embargo, ANOVA usa variables independientes categóricas y una variable dependiente continua, mientras que el análisis discriminante tiene variables independientes continuas y una variable dependiente categórica (o sea, la etiqueta de clase).
+
+¿por qué discriminante lineal?
+
+$$log \frac{Pr(Y = k | X=x)}{Pr(Y = j | X=x)}$$
+$$ = log \frac{f_k(x)}{f_j(x)} + log \frac{\pi_k}{\pi_j}$$
+$$ = log \frac{\pi_k}{\pi_j} - \frac{1}{2}(\mu_k^T \Sigma^{-1}\mu_k - \mu_j^T \Sigma^{-1}\mu_j)$$
+$$ + x^T \Sigma^{-1} (\mu_k - \mu_j)$$
+asi funciona 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/ldaboundary.png")
+```
+
+funcion discriminante 
+
+$$\delta_k(x) = x^T \Sigma^{-1} \mu_k - \frac{1}{2}\mu_k \Sigma^{-1}\mu_k + log(\mu_k)$$
+
+* Decidir la clase en función de $\hat {Y} (x) = argmax_k \delta_k (x)$
+* Solemos estimar los parámetros con la máxima verosimilitud 
+
+*Nive bayes*
+
+En términos simples, un clasificador de Naive Bayes asume que la presencia o ausencia de una característica particular no está relacionada con la presencia o ausencia de cualquier otra característica, dada la clase variable. Por ejemplo, una fruta puede ser considerada como una manzana si es roja, redonda y de alrededor de 7 cm de diámetro. Un clasificador de Naive Bayes considera que cada una de estas características contribuye de manera independiente a la probabilidad de que esta fruta sea una manzana, independientemente de la presencia o ausencia de las otras características.
+
+Supongamos que tenemos muchos predictores, querríamos modelar: $P (Y = k | X_1, \ldots, X_m)$
+
+Podríamos usar el Teorema de Bayes para obtener:
+
+$$P(Y = k | X_1,\ldots,X_m) = \frac{\pi_k P(X_1,\ldots,X_m| Y=k)}{\sum_{\ell = 1}^K P(X_1,\ldots,X_m | Y=k) \pi_{\ell}}$$
+$$\propto \pi_k P(X_1,\ldots,X_m| Y=k)$$
+
+esto puede ser escrito 
+
+$$P(X_1,\ldots,X_m, Y=k) = \pi_k P(X_1 | Y = k)P(X_2,\ldots,X_m | X_1,Y=k)$$
+$$= \pi_k P(X_1 | Y = k) P(X_2 | X_1, Y=k) P(X_3,\ldots,X_m | X_1,X_2, Y=k)$$
+$$= \pi_k P(X_1 | Y = k) P(X_2 | X_1, Y=k)\ldots P(X_m|X_1\ldots,X_{m-1},Y=k)$$
+Podríamos hacer una suposición para escribir esto:
+
+$$\approx \pi_k P(X_1 | Y = k) P(X_2 | Y = k)\ldots P(X_m |,Y=k)$$
+
+ejemplo con datos iris 
+
+```{r}
+data(iris); library(ggplot2)
+names(iris)
+table(iris$Species)
+
+inTrain <- createDataPartition(y=iris$Species,
+                              p=0.7, list=FALSE)
+training <- iris[inTrain,]
+testing <- iris[-inTrain,]
+dim(training); dim(testing)
+```
+
+construyendo los predictores 
+
+```{r}
+#analisis de discriminante lineal
+modlda = train(Species ~ .,data=training,method="lda")
+#nive bayes 
+modnb = train(Species ~ ., data=training,method="nb")
+plda = predict(modlda,testing); pnb = predict(modnb,testing)
+table(plda,pnb)
+```
+
+
+comparacion de resultados 
+
+```{r}
+equalPredictions = (plda==pnb)
+qplot(Petal.Width,Sepal.Width,colour=equalPredictions,data=testing)
+```
+
+
+## notas y futuras lecturas 
+
+* [Introduction to statistical learning](http://www-bcf.usc.edu/~gareth/ISL/)
+* [Elements of Statistical Learning](http://www-stat.stanford.edu/~tibs/ElemStatLearn/)
+* [Model based clustering](http://www.stat.washington.edu/raftery/Research/PDF/fraley2002.pdf)
+* [Linear Discriminant Analysis](http://en.wikipedia.org/wiki/Linear_discriminant_analysis)
+* [Quadratic Discriminant Analysis](http://en.wikipedia.org/wiki/Quadratic_classifier)

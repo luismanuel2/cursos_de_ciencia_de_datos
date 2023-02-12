@@ -1,0 +1,519 @@
+---
+title: "semana 1"
+author: "luis"
+date: "22/6/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,fig.align = "center")
+```
+
+\tableofcontents
+
+# ¿Qué es la predicción? 
+
+## componentes de una prediccion 
+
+<center> question -> input data -> features -> algorithm -> parameters -> evaluation  </center>
+
+## ejemplo de SPAM 
+
+\textcolor{red}{question}
+
+__Comience con una pregunta general__
+
+¿Puedo detectar automáticamente correos electrónicos que son SPAM que no lo son?
+
+__Hazlo concreto__
+
+¿Puedo utilizar características cuantitativas de los correos electrónicos para clasificarlos como SPAM / HAM?
+
+\textcolor{red}{input data}
+
+Datos obtenidos de:
+[http://rss.acs.unt.edu/Rdoc/library/kernlab/html/spam.html](http://rss.acs.unt.edu/Rdoc/library/kernlab/html/spam.html)
+
+
+\textcolor{red}{features}
+
+</br>
+
+<b> 
+
+Dear Jeff, 
+
+Can <rt>you</rt> send me your address so I can send <rt>you</rt> the invitation? 
+
+Thanks,
+
+Ben
+</b>
+
+</br>
+
+Frecuencia de  "you" $= 2/17 = 0.118$
+
+```{r}
+library(kernlab)
+data(spam)
+head(spam)
+```
+
+En este caso sencilla las caracteristicas a escoger es la frecuencia de la palabra you
+
+\textcolor{red}{algorithm}
+
+```{r,fig.height=3.5,fig.width=3.5}
+plot(density(spam$your[spam$type=="nonspam"]),
+     col="blue",main="",xlab="Frequency of 'your'")
+lines(density(spam$your[spam$type=="spam"]),col="red")
+```
+
+* Encuentra un valor $C$.
+* __frecuencia de 'your' $>$ C__ predice "spam"
+
+\textcolor{red}{patameters}
+
+elegimos un valor de $c$ de 0.5
+```{r}
+plot(density(spam$your[spam$type=="nonspam"]),
+     col="blue",main="",xlab="Frequency of 'your'")
+lines(density(spam$your[spam$type=="spam"]),col="red")
+abline(v=0.5,col="black")
+```
+
+\textcolor{red}{evaluation }
+
+```{r,fig.height=3.5,fig.width=3.5}
+prediction <- ifelse(spam$your > 0.5,"spam","nonspam")
+table(prediction,spam$type)/length(spam$type)
+```
+
+precision $\approx 0.459 + 0.292 = 0.751$ 
+
+# Importancia relativa de los pasos 
+
+"La combinación de algunos datos y el doloroso deseo de una respuesta no garantiza que se pueda extraer una respuesta razonable de un conjunto de datos determinado."
+
+-John Tukey
+
+\textcolor{red}{input data} 
+
+1. Puede ser fácil (clasificaciones de películas -> clasificaciones de películas nuevas)
+2. Puede ser más difícil (datos de expresión genética -> enfermedad)
+3. Depende de lo que sea una "buena predicción".
+4. A menudo, [más datos> mejores modelos] (http://www.youtube.com/watch?v=yvDCzhbjYWs)
+5. ¡El paso más importante!
+
+¡las características importan!
+
+\textcolor{red}{features}
+
+__Propiedades de buenas características__
+
+* Conducir a la compresión de datos
+* Conservar la información relevante
+* Se crean en base al conocimiento de aplicaciones de expertos.
+
+__Errores comunes__
+
+* Intentando automatizar la selección de funciones
+* No prestar atención a las peculiaridades específicas de los datos
+* Tirar información innecesariamente
+
+\textcolor{red}{algorithm}
+
+Los algoritmos importan menos de lo que piensas
+
+
+Los algoritmos importan menos de lo que piensas, y esto puede ser un una fuente de sorpresa y frustración para algunas personas. Así que esta es una tabla en la que intentaron predecir una variedad de diferentes tareas de predicción, por ejemplo, una especie de tarea de segmentación, predicción de votos en la Cámara de Representantes de EE. UU., y predicción de formas de onda y un montón de otras tareas de predicción diferentes. Y así lo hicieron de dos formas diferentes, primero usaron algo llamado análisis discriminante lineal que es una especie de un predictor temprano muy básico que puede aprender. Y luego también probaron para cada dato configurado para encontrar el mejor algoritmo de predicción absoluto podrían haberlo hecho y luego esta tabla muestra el error de predicción de estos dos enfoques diferentes. Y puede ver que el mejor error de predicción es siempre un poco mejor que el error discriminante lineal. Pero, en realidad, no está tan lejos.
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/illusiontable.png")
+```
+
+Temas a considerar
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/mlconsiderations.jpg")
+```
+
+La predicción se trata de compensaciones de precisión
+
+* Interpretabilidad versus precisión
+* Velocidad versus precisión
+* Simplicidad versus precisión
+* Escalabilidad versus precisión (adaptacion)
+
+La interpretabilidad importa: declaraciones si / entonces pueden ser muy interpretables para algunas personas, y esa es la razón por la que a la gente le gustan cosas como los árboles de decisiones
+
+# Error en muestra y fuera de la muestra 
+
+__En Error de muestra__: La tasa de error que obtiene en el mismo
+conjunto de datos que usó para construir su predictor. Algunas veces 
+llamado error de resustitución.
+(entrenamiento)
+
+__error fuera de la muestra__: La tasa de error que obtiene en un nuevo
+conjunto de datos. A veces se denomina error de generalización.
+(prueba)
+
+__Ideas claves__
+
+1. Lo que le importa es el error fuera de muestra
+2. En error de muestra $<$ fuera de error de muestra
+3. El motivo es el sobreajuste
+    * Hacer coincidir su algoritmo con los datos que tiene
+
+ejemplo motivacional
+```{r, fig.height=3.5,fig.width=3.5}
+library(kernlab); data(spam); set.seed(333)
+smallSpam <- spam[sample(dim(spam)[1],size=10),]
+spamLabel <- (smallSpam$type=="spam")*1 + 1
+plot(smallSpam$capitalAve,col=spamLabel)
+```
+
+Regla de predicción 1
+
+  * capitalAve $>$ 2.7 = "spam"
+  * capitalAve $<$ 2.40 = "no spam"
+  * capitalAve entre 2,40 y 2,45 = "spam"
+  * capitalAve entre 2,45 y 2,7 = "no spam"
+
+  Aplicando regla de prediccion 1 a smallSpam 
+
+```{r}
+rule1 <- function(x){
+  prediction <- rep(NA,length(x))
+  prediction[x > 2.7] <- "spam"
+  prediction[x < 2.40] <- "nonspam"
+  prediction[(x >= 2.40 & x <= 2.45)] <- "spam"
+  prediction[(x > 2.45 & x <= 2.70)] <- "nonspam"
+  return(prediction)
+}
+table(rule1(smallSpam$capitalAve),smallSpam$type)
+```
+
+Regla de prediccion 2
+  * capitalAve $>$ 2.40 = "spam"
+  * capitalAve $\leq$ 2.40 = "nonspam"
+  
+  Aplicando regla de prediccion 2 a smallSpam 
+  
+```{r}
+rule2 <- function(x){
+  prediction <- rep(NA,length(x))
+  prediction[x > 2.8] <- "spam"
+  prediction[x <= 2.8] <- "nonspam"
+  return(prediction)
+}
+table(rule2(smallSpam$capitalAve),smallSpam$type)
+```
+  
+Aplicar para completar los datos de spam
+```{r}
+table(rule1(spam$capitalAve),spam$type)
+table(rule2(spam$capitalAve),spam$type)
+mean(rule1(spam$capitalAve)==spam$type)
+mean(rule2(spam$capitalAve)==spam$type)
+```
+  
+Mira la precisión
+```{r}
+sum(rule1(spam$capitalAve)==spam$type)
+sum(rule2(spam$capitalAve)==spam$type)
+```
+
+que esta pasando?(\textcolor{red}{sobreajuste})
+
+* Los datos tienen dos partes
+   * Señal
+   * Ruido
+* El objetivo de un predictor es encontrar la señal
+* Siempre puede diseñar un predictor perfecto en la muestra
+* Capturas tanto la señal como el ruido cuando haces eso
+* El predictor no funcionará tan bien en nuevas muestras
+
+[http://en.wikipedia.org/wiki/Overfitting](http://en.wikipedia.org/wiki/Overfitting)
+
+# Diseño del estudio de predicción
+
+1. Defina su tasa de error
+2. Divida los datos en:
+   * Entrenamiento, Pruebas, Validación 
+3. En el conjunto de entrenamiento, elige caracteristicas.
+   * Usar validación cruzada
+4. En la función de predicción de selección del conjunto de entrenamiento
+   * Usar validación cruzada
+6. Si no hay validación
+   * Aplicar 1x al conjunto de prueba
+7. Si la validación
+   * Aplicar al conjunto de prueba y refinar
+   * Aplicar 1x a la validación
+   
+*Evite tamaños de muestra pequeños*
+
+Reglas generales para el diseño de estudios de predicción
+
+* Si tiene un tamaño de muestra grande
+   * 60% de formación
+   * Prueba del 20%
+   * 20% de validación
+* Si tiene una muestra de tamaño medio
+   * 60% de formación
+   * 40% de prueba
+* Si tiene un tamaño de muestra pequeño
+   * Hacer validación cruzada
+   * Informe de advertencia de tamaño de muestra pequeño
+
+*algunos principios para recordar* 
+
+* Deje a un lado la prueba / validación y _no lo mire_
+* En general, muestra de entrenamiento y prueba son  _aleatorios_
+* Sus conjuntos de datos deben reflejar la estructura del problema
+    * Si las predicciones evolucionan con el entrenamiento/prueba dividido en el tiempo en fragmentos de tiempo (llamado [backtesting] (http://en.wikipedia.org/wiki/Backtesting) en finanzas)
+* Todos los subconjuntos deben reflejar la mayor diversidad posible
+    * La asignación aleatoria hace esto
+    * También puede intentar equilibrar por características, pero esto es complicado
+    
+# Tipos de error
+
+## para resultados binarios
+
+En general, __Positivo__ = identificado y __negativo__ = rechazado. Por lo tanto:
+
+__Verdadero positivo__ = identificado correctamente
+
+__False positivo__ = identificado incorrectamente
+
+__Verdadero negativo__ = correctamente rechazado
+
+__False negative__ = rechazado incorrectamente
+
+_Ejemplo de prueba médica_:
+
+__Verdadero positivo__ = Personas enfermas correctamente diagnosticadas como enfermas
+
+__Falso positivo __ = Personas sanas identificadas incorrectamente como enfermas
+
+__Verdadero negativo__ = Personas sanas correctamente identificadas como sanas
+
+__False negative__ = Personas enfermas incorrectamente identificadas como saludables.
+
+* *La sensibilidad* (tasa de verdaderos positivos) mide la proporción de positivos que se identifican correctamente (es decir, la proporción de aquellos que tienen alguna afección (afectados) que se identifican correctamente como portadores de la afección).
+* *La especificidad* (tasa de verdaderos negativos) mide la proporción de negativos que se identifican correctamente (es decir, la proporción de aquellos que no tienen la afección (no afectados) que se identifican correctamente como personas que no padecen la afección).
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/keyquantities.png")
+```
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/keyquantfrac.png")
+```
+
+Ahora pongamos un ejemplo:
+Suponga que alguna enfermedad tiene una prevalencia del 0,1% en la población. Supongamos que tenemos un kit de prueba para esa enfermedad que funciona con una sensibilidad del 99% y una especificidad del 99%. ¿Cuál es la probabilidad de que una persona tenga la enfermedad dado que el resultado de la prueba es positivo, si seleccionamos al azar un sujeto de
+
+* la población en general?
+* una subpoblación de alto riesgo con una prevalencia de enfermedad del 10%?
+
+Población general 
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/predpos2.png")
+```
+Población general como fracciones
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/predpos3.png")
+```
+Subpoblación en riesgo
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/predpos4.png")
+```
+Subpoblación en riesgo como fracciones 
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/predpos5.png")
+```
+
+## para el caso continuo 
+
+__Error cuadrático medio(MSE) __:
+
+$$\frac{1}{n}\sum_{i = 1}^n(Predicción_i-Verdad_i)^2$$
+
+__Raíz de el error cuadrático medio (RMSE) __:
+
+$$\sqrt{\frac{1}{n}\sum_{i = 1}^n (Predicción_i - Verdad_i) ^ 2}$$
+
+## Medidas de error comunes 
+
+1. Error cuadrático medio (o error cuadrático medio)
+   * Datos continuos, sensibles a valores atípicos
+2. Desviación absoluta mediana
+   * Datos continuos, a menudo más robustos
+3. Sensibilidad (recuerdo)
+   * Si quieres pocos positivos perdidos
+4. Especificidad
+   * Si quieres algunos negativos llamados positivos
+5. Precisión
+   * Pondera los falsos positivos / negativos por igual
+6. Concordancia
+   * Un ejemplo es [kappa] (http://en.wikipedia.org/wiki/Cohen%27s_kappa)
+5. Valor predictivo de un positivo (precisión)
+   * Cuando está revisando y el predominio es bajo
+   
+# Característica Operativa del Receptor (curvas)
+
+* En la clasificación binaria está prediciendo una de dos categorías
+   * Vivo muerto
+   * Haga clic en el anuncio / no haga clic
+* Pero tus predicciones suelen ser cuantitativas
+   * Probabilidad de estar vivo
+   * Predicción en una escala del 1 al 10
+* El _cutoff_ que elijas da resultados diferentes
+
+La curva ROC , es un diagrama gráfico que ilustra la capacidad de diagnóstico de un sistema clasificador binario a medida que varía su umbral de discriminación. El método fue desarrollado originalmente para operadores de receptores de radar militares a partir de 1941, lo que llevó a su nombre.
+
+La curva ROC se crea trazando la tasa de verdaderos positivos (TPR) frente a la tasa de falsos positivos (FPR) en varios valores de umbral
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/roc2.png")
+```
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/roc1.png")
+```
+
+* AUC = 0.5: adivinación aleatoria
+* AUC = 1: clasificador perfecto
+* En general, el AUC superior a 0,8 se considera "bueno"
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/roc3.png")
+```
+
+# Validacion Cruzada 
+
+## enfoque 1
+
+1. La precisión en el conjunto de entrenamiento (precisión de resustitución) es optimista
+2. Una mejor estimación proviene de un conjunto independiente (precisión del conjunto de prueba)
+3. Pero no podemos usar el conjunto de prueba al crear el modelo o se convierte en parte del conjunto de entrenamiento.
+4. Por tanto, estimamos la precisión del conjunto de prueba con el conjunto de entrenamiento.
+
+_Acercarse_:
+
+1. Usa el conjunto de entrenamiento
+
+2. Divídalo en conjuntos de entrenamiento/prueba
+
+3. Construya un modelo en el conjunto de entrenamiento.
+
+4. Evaluar en el equipo de prueba
+
+5. Repetir y promediar los errores estimados
+
+_Usado para_:
+
+1. Seleccionar variables para incluir en un modelo
+
+2. Elegir el tipo de función de predicción que se utilizará
+
+3. Seleccionar los parámetros en la función de predicción
+
+4. Comparación de diferentes predictores
+  
+
+Diferentes formas de dividir los datos 
+
+1. Random subsampling
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/random.png")
+```
+
+Este método consiste al dividir aleatoriamente el conjunto de datos de entrenamiento y el conjunto de datos de prueba. Para cada división la función de aproximación se ajusta a partir de los datos de entrenamiento y calcula los valores de salida para el conjunto de datos de prueba. El resultado final se corresponde a la media aritmética de los valores obtenidos para las diferentes divisiones. La ventaja de este método es que la división de datos entrenamiento-prueba no depende del número de iteraciones. Pero, en cambio, con este método hay algunas muestras que quedan sin evaluar y otras que se evalúan más de una vez, es decir, los subconjuntos de prueba y entrenamiento se pueden solapar
+
+2. K-fold
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/kfold.png")
+```
+
+Se dividen en K subconjuntos. Uno de los subconjuntos se utiliza como datos de prueba y el resto (K-1) como datos de entrenamiento. El proceso de validación cruzada es repetido durante k iteraciones, con cada uno de los posibles subconjuntos de datos de prueba. Finalmente se realiza la media aritmética de los resultados de cada iteración para obtener un único resultado. Este método es muy preciso puesto que evaluamos a partir de K combinaciones de datos de entrenamiento y de prueba, pero aun así tiene una desventaja, y es que, a diferencia del método de retención, es lento desde el punto de vista computacional
+
+3. Leave one out
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/loocv.png")
+```
+
+Implica separar los datos de forma que para cada iteración tengamos una sola muestra para los datos de prueba y todo el resto conformando los datos de entrenamiento. La evaluación viene dada por el error, y en este tipo de validación cruzada el error es muy bajo, pero en cambio, a nivel computacional es muy costoso, puesto que se tienen que realizar un elevado número de iteraciones, tantas como N muestras tengamos y para cada una analizar los datos tanto de entrenamiento como de prueba. 
+
+**Consideraciones**
+
+* Para los datos de series de tiempo, los datos deben usarse en "fragmentos"
+* Para validación cruzada de k-fold
+   * Mayor k = menos sesgo, más varianza
+   * Más pequeño k = más sesgo, menos varianza
+* El muestreo aleatorio debe realizarse _sin reemplazo_
+* El muestreo aleatorio con reemplazo es el _bootstrap_
+   * Subestima el error
+   * Se puede corregir, pero es complicado ([0.632 Bootstrap] (http://www.jstor.org/discover/10.2307/2965703?uid=2&uid=4&sid=21103054448997))
+* Si realiza una validación cruzada para elegir la estimación de predictores, debe estimar los errores en datos independientes.
+
+## enfoque 2 
+
+cuando hacemos validacion cruzada desde el enfoque 1 existe la posibilidad de que pase el mismo efecto en el conjunto de prueba que el  que pasa en el conjunto de entrenamiento, es decir que que haya un sobreajuste generado  por el conjunto de prueba
+
+Para solucionar esto, podemos introducir un tercer conjunto, el Conjunto de validación cruzada , para que sirva como conjunto intermedio. Entonces, nuestro conjunto de prueba nos dará un error preciso y no optimista.
+
+Una forma de ejemplo de dividir nuestro conjunto de datos en tres conjuntos es:
+
+* Conjunto de entrenamiento: 60%
+* Conjunto de validación cruzada: 20%
+* Equipo de prueba: 20%
+
+Ahora podemos calcular tres valores de error separados para los tres conjuntos diferentes.
+
+1. Optimice los parámetros en $\Theta$ utilizando el conjunto de entrenamiento.
+2. Encuentre el menor error usando el conjunto de validación cruzada.
+3. Estime el error de generalización usando el conjunto de prueba (si es muy grande hay un sobreajuste)
+
+
+# varianza vs Sesgo 
+
+## En estadistica 
+
+El *sesgo* mide lo lejos que se encuentra el valor estimado respecto al real de la población completa. Por ejemplo, si se desea calcular la vida media de unas bombillas es necesario escoger una muestra. El tiempo de vida promedio de esta muestra es el que se le asocia a la población, pero no tiene porque se el de la población total. Este error es lo que se llama como sesgo.
+
+Al trabajar con una muestra aleatoria de la población total es de esperar que sea diferente de otra muestra. Esta diferencia entre las muestras es lo que la ´*varianza*. Así cada vez que se realiza un nuevo muestreo se observa que los resultados suelen ser diferentes.
+
+## En Machine learning 
+
+*sesgo*
+
+En aprendizaje automático para estimar un valor se utilizan modelos. Existiendo muchas familias entre los que escoger. Por ejemplo, en un problema de clasificación se puede utilizar regresiones logísticas o random forest entre otros. Pero no todos los modelos son iguales, ya que cada uno presenta diferentes propiedades.
+
+Así que una pregunta obvia es cómo se relaciona cada una de las familias de modelos con el sesgo de las predicciones. El sesgo habitualmente presenta una relación inversa con la complejidad de los modelos. Es decir, a mayor complejidad del modelo utilizado es de esperar una menor sesgo.
+
+Ahora bien, ¿qué se entiende por complejidad de un modelo? Por ejemplo, la regresión logística es un modelo más simple que un árbol de decisión. La regresión logística asume cierta relación entre las características y el valor a predecir. Por otro lado, random forest es más complejo en el sentido de que utiliza un conjunto de árboles de decisión para realizar las predicciones.
+
+*varianza*
+
+El entrenamiento de los modelos se realiza con conjuntos de dato diferentes sobre los que posteriormente se utiliza para validar las predicciones. A los que se conocen como conjunto de entrenamiento y test respectivamente. Por este hecho es de esperar que ambos conjuntos sean ligeramente diferentes. Es importante tener en cuenta que cuando entrena a un modelo no se esperar que este memorice los valores, sino que encuentre patrones. Observándose en muchas ocasiones que modelos complejos ajustan bien a los datos de entrenamiento, pero no sucede lo mismo con los de validación. En donde se suele observar que fallan.
+
+La varianza también se puede relacionar con la complejidad de los modelos. A medida que aumenta la complejidad, aumentan las posibilidades de sobreajuste, es decir, la varianza aumenta. Al comparar la regresión logística con random forest se espera que la varianza del primero se meno que la del segundo
+
+* El sesgo alto es desajuste y la varianza alta es sobreajuste.
+* se trata de encontrar un equilibrio entre el sesgo, varianza 
+
+
+
+
+# recursos
+
+* [The elements of statistical learning](http://statweb.stanford.edu/~tibs/ElemStatLearn/)
+* [List of machine learning resources on Quora](http://www.quora.com/Machine-Learning/What-are-some-good-resources-for-learning-about-machine-learning-Why)
+* [List of machine learning resources from Science](http://www.sciencemag.org/site/feature/data/compsci/machine_learning.xhtml)
+* [Advanced notes from MIT open courseware](http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-867-machine-learning-fall-2006/lecture-notes/)
+* [Advanced notes from CMU](http://www.stat.cmu.edu/~cshalizi/350/)
+* [Kaggle - machine learning competitions](http://www.kaggle.com/)
+* [ROC](http://en.wikipedia.org/wiki/Receiver_operating_characteristic)

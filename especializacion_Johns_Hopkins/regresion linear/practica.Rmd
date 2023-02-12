@@ -1,0 +1,79 @@
+---
+title: "linear regression practice"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning=F,message = F)
+```
+
+# main body
+
+let's review the data first
+
+```{r}
+library(dplyr)
+data("mtcars")
+head(mtcars)
+```
+
+we are interested in whether an automatic or manual transmission is better for MPG, so our variable of interest is am Transmission (0 = automatic, 1 = manual), now we are going to perform a regression analysis 
+
+```{r}
+fit<-lm(mpg~am, data = mtcars)
+coef(fit)
+```
+The interpretation of the coefficients is as follows: the average for the automatic transmission is 17.147368 MPG, while for the manual transmission it is higher by 7.244939 MPG, let's do a hypothesis test to disprove the difference of means 
+
+$$H_0:\mu_0=\mu_1 \hspace{1cm}vs\hspace{1cm} H_1:\mu_0\neq\mu_1$$
+```{r}
+automatic <- subset(mtcars,am==0)
+manual <- subset(mtcars,am==1)
+t.test(automatic$mpg, manual$mpg)
+```
+let's consider  a significance of $\alpha=0.05$,since the p-value is 0.001374, then $0.001374<\alpha$ and  the null hypothesis can be rejected. Now we are going to add more variables to our model and see what happens
+
+```{r}
+fit2<-lm(mpg~cyl+ disp+hp +drat +   wt + qsec+am, data = mtcars)
+coef(fit2)
+```
+
+As we can see the difference in the average estimate when using manual transmission and when using automatic transmission is of 2.72022025 , being the manual transmission the one that produces more MPG, the difference when adding more variables is smaller but still significant, let's compare if there is an improvement between the models
+
+```{r}
+anova(fit,fit2)
+```
+The null hypothesis is that the aggregated regressors are not significant, also the null hypothesis is rejected at the 0.001 level of significance, therefore it can be said that fit2 is a "better" model. 
+
+# appendix
+
+```{r}
+library(ggplot2)
+
+g<-ggplot(data=mtcars,aes(x= mpg,fill=as.factor(am)))
+g<-g+geom_boxplot()
+g<-g+theme_bw()
+g<-g+ggtitle("manual transmission (1) vs automatic transmission (0)")
+g
+```
+
+We can see that the whole body of the box for the manual transmission is above the body of the fall of the automatic transmission,now let's check the residuals
+
+```{r}
+
+par(mfrow = c(2,2))
+plot(fit)
+```
+
+```{r}
+par(mfrow = c(2,2))
+plot(fit2)
+```
+
+In conclusion we can say that the manual transmission produces more MPG 
+ 
+
+
+
+
+

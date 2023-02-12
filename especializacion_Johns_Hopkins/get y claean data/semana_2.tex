@@ -1,0 +1,760 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={semana 2},
+  pdfauthor={Luis Ambrocio},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{semana 2}
+\author{Luis Ambrocio}
+\date{}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\hypertarget{leyendo-mysql}{%
+\section{Leyendo MySQL}\label{leyendo-mysql}}
+
+\begin{itemize}
+\tightlist
+\item
+  Software de base de datos de código abierto gratuito y ampliamente
+  utilizado
+\item
+  Ampliamente utilizado en aplicaciones basadas en Internet.
+\item
+  Los datos están estructurados en
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Bases de datos
+  \item
+    Tablas dentro de bases de datos
+  \item
+    Campos dentro de tablas
+  \end{itemize}
+\item
+  Cada fila se llama registro
+\end{itemize}
+
+\begin{center}\includegraphics[width=1\linewidth]{D:/luism/Documents/courses/assets/img/03_ObtainingData/database-schema} \end{center}
+
+primero se installa MySQL
+
+\url{http://dev.mysql.com/doc/refman/5.7/en/installing.html}
+
+luego intsalar RMySQL
+
+\begin{itemize}
+\tightlist
+\item
+  Official instructions -
+  \url{http://biostat.mc.vanderbilt.edu/wiki/Main/RMySQL} (may be useful
+  for Mac/UNIX users as well)
+\item
+  Potentially useful guide -
+  \url{http://www.ahschulz.de/2013/07/23/installing-rmysql-under-windows/}
+\end{itemize}
+
+conectar y enumerar bases de datos
+
+\begin{center}\includegraphics[width=1\linewidth]{D:/luism/Pictures/Saved Pictures/mysql1} \end{center}
+
+Conexión a hg19 y listas de tablas
+
+\begin{center}\includegraphics[width=1\linewidth]{D:/luism/Pictures/Saved Pictures/mysql2} \end{center}
+
+obteniendo dimenciones de una tabla especifica
+
+\begin{center}\includegraphics[width=1\linewidth]{D:/luism/Pictures/Saved Pictures/mysql3} \end{center}
+
+leyendo de la tabla
+
+\begin{center}\includegraphics[width=1\linewidth]{D:/luism/Pictures/Saved Pictures/mysql4} \end{center}
+
+seleccionando un subconjunto especifico
+
+\begin{center}\includegraphics[width=1\linewidth]{D:/luism/Pictures/Saved Pictures/mysql5} \end{center}
+
+cerrar la conexion
+
+\begin{center}\includegraphics[width=1\linewidth]{D:/luism/Pictures/Saved Pictures/mysql6} \end{center}
+
+\hypertarget{recursos-adicionales}{%
+\subsection{Recursos adicionales}\label{recursos-adicionales}}
+
+\begin{itemize}
+\tightlist
+\item
+  Viñeta RMySQL
+  \url{http://cran.r-project.org/web/packages/RMySQL/RMySQL.pdf}
+\item
+  Lista de comandos
+  \url{http://www.pantz.org/software/mysql/mysqlcommands.html}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{No, no elimine, agregue o combine elementos de ensembl. Solo
+    seleccione .}
+  \item
+    En general, tenga cuidado con los comandos mysql
+  \end{itemize}
+\item
+  Una buena publicación de blog que resume algunos otros comandos
+  \url{http://www.r-bloggers.com/mysql-and-r/}
+\item
+  \url{http://en.wikipedia.org/wiki/MySQL}
+\item
+  \url{http://www.mysql.com/}
+\end{itemize}
+
+\hypertarget{leyendo-hd5f}{%
+\section{Leyendo HD5F}\label{leyendo-hd5f}}
+
+HDF5
+
+\begin{itemize}
+\tightlist
+\item
+  Se utiliza para almacenar grandes conjuntos de datos.
+\item
+  Admite el almacenamiento de una variedad de tipos de datos
+\item
+  Formato de datos jerárquico
+\item
+  \emph{grupos} que contienen cero o más conjuntos de datos y metadatos
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Tener un \emph{encabezado de grupo} con el nombre del grupo y una
+    lista de atributos
+  \item
+    Tener una \emph{tabla de símbolos de grupo} con una lista de objetos
+    en el grupo
+  \end{itemize}
+\item
+  \emph{datasets} matriz multidimensional de elementos de datos con
+  metadatos
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Tener un \emph{encabezado} con nombre, tipo de datos, espacio de
+    datos y diseño de almacenamiento
+  \item
+    Tener un \emph{data array} con los datos
+  \end{itemize}
+\end{itemize}
+
+\url{http://www.hdfgroup.org/}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{invisible}\NormalTok{(}\ControlFlowTok{if}\NormalTok{(}\FunctionTok{file.exists}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{))\{}\FunctionTok{file.remove}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{)\})}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(rhdf5)}
+\NormalTok{file }\OtherTok{\textless{}{-}} \FunctionTok{h5createFile}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{)}
+\NormalTok{file}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] TRUE
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  Esto instalará paquetes de Bioconductor
+  \url{http://bioconductor.org/}, que se usa principalmente para
+  genómica pero también tiene buenos paquetes de ``big data''
+\item
+  Se puede utilizar para interactuar con conjuntos de datos hdf5.
+\item
+  Esta conferencia se basa muy de cerca en el tutorial de rhdf5 que se
+  puede encontrar aquí
+  \href{http://www.bioconductor.org/packages/release/bioc/\%20viñetas\%20/\%20rhdf5\%20/\%20inst\%20/\%20doc\%20/\%20rhdf5.pdf}{http://www.bioconductor.org/packages/release/bioc/vignettes/rhdf5/inst/doc/rhdf5.pdf}
+\end{itemize}
+
+crear grupos
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{created }\OtherTok{=} \FunctionTok{h5createGroup}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{,}\StringTok{"foo"}\NormalTok{)}
+\NormalTok{created }\OtherTok{=} \FunctionTok{h5createGroup}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{,}\StringTok{"baa"}\NormalTok{)}
+\NormalTok{created }\OtherTok{=} \FunctionTok{h5createGroup}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{,}\StringTok{"foo/foobaa"}\NormalTok{)}
+\FunctionTok{h5ls}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   group   name     otype dclass dim
+## 0     /    baa H5I_GROUP           
+## 1     /    foo H5I_GROUP           
+## 2  /foo foobaa H5I_GROUP
+\end{verbatim}
+
+Escribir a grupos
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{A }\OtherTok{=} \FunctionTok{matrix}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{10}\NormalTok{,}\AttributeTok{nr=}\DecValTok{5}\NormalTok{,}\AttributeTok{nc=}\DecValTok{2}\NormalTok{)}
+\FunctionTok{h5write}\NormalTok{(A, }\StringTok{"example.h5"}\NormalTok{,}\StringTok{"foo/A"}\NormalTok{)}
+\NormalTok{B }\OtherTok{=} \FunctionTok{array}\NormalTok{(}\FunctionTok{seq}\NormalTok{(}\FloatTok{0.1}\NormalTok{,}\FloatTok{2.0}\NormalTok{,}\AttributeTok{by=}\FloatTok{0.1}\NormalTok{),}\AttributeTok{dim=}\FunctionTok{c}\NormalTok{(}\DecValTok{5}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{2}\NormalTok{))}
+\FunctionTok{attr}\NormalTok{(B, }\StringTok{"scale"}\NormalTok{) }\OtherTok{\textless{}{-}} \StringTok{"liter"}
+\FunctionTok{h5write}\NormalTok{(B, }\StringTok{"example.h5"}\NormalTok{,}\StringTok{"foo/foobaa/B"}\NormalTok{)}
+\FunctionTok{h5ls}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##         group   name       otype  dclass       dim
+## 0           /    baa   H5I_GROUP                  
+## 1           /    foo   H5I_GROUP                  
+## 2        /foo      A H5I_DATASET INTEGER     5 x 2
+## 3        /foo foobaa   H5I_GROUP                  
+## 4 /foo/foobaa      B H5I_DATASET   FLOAT 5 x 2 x 2
+\end{verbatim}
+
+escribir un conjunto de datos
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{df }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(1L}\SpecialCharTok{:}\NormalTok{5L,}\FunctionTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{,}\AttributeTok{length.out=}\DecValTok{5}\NormalTok{),}
+  \FunctionTok{c}\NormalTok{(}\StringTok{"ab"}\NormalTok{,}\StringTok{"cde"}\NormalTok{,}\StringTok{"fghi"}\NormalTok{,}\StringTok{"a"}\NormalTok{,}\StringTok{"s"}\NormalTok{), }\AttributeTok{stringsAsFactors=}\ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{h5write}\NormalTok{(df, }\StringTok{"example.h5"}\NormalTok{,}\StringTok{"df"}\NormalTok{)}
+\FunctionTok{h5ls}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##         group   name       otype   dclass       dim
+## 0           /    baa   H5I_GROUP                   
+## 1           /     df H5I_DATASET COMPOUND         5
+## 2           /    foo   H5I_GROUP                   
+## 3        /foo      A H5I_DATASET  INTEGER     5 x 2
+## 4        /foo foobaa   H5I_GROUP                   
+## 5 /foo/foobaa      B H5I_DATASET    FLOAT 5 x 2 x 2
+\end{verbatim}
+
+leyendo datos
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{readA }\OtherTok{=} \FunctionTok{h5read}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{,}\StringTok{"foo/A"}\NormalTok{)}
+\NormalTok{readB }\OtherTok{=} \FunctionTok{h5read}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{,}\StringTok{"foo/foobaa/B"}\NormalTok{)}
+\NormalTok{readdf}\OtherTok{=} \FunctionTok{h5read}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{,}\StringTok{"df"}\NormalTok{)}
+\NormalTok{readA}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      [,1] [,2]
+## [1,]    1    6
+## [2,]    2    7
+## [3,]    3    8
+## [4,]    4    9
+## [5,]    5   10
+\end{verbatim}
+
+Fragmentos de escritura y lectura
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{h5write}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\DecValTok{12}\NormalTok{,}\DecValTok{13}\NormalTok{,}\DecValTok{14}\NormalTok{),}\StringTok{"example.h5"}\NormalTok{,}\StringTok{"foo/A"}\NormalTok{,}\AttributeTok{index=}\FunctionTok{list}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{,}\DecValTok{1}\NormalTok{))}
+\FunctionTok{h5read}\NormalTok{(}\StringTok{"example.h5"}\NormalTok{,}\StringTok{"foo/A"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      [,1] [,2]
+## [1,]   12    6
+## [2,]   13    7
+## [3,]   14    8
+## [4,]    4    9
+## [5,]    5   10
+\end{verbatim}
+
+\hypertarget{notas-y-otros-recursos}{%
+\subsection{Notas y otros recursos}\label{notas-y-otros-recursos}}
+
+\begin{itemize}
+\tightlist
+\item
+  hdf5 se puede utilizar para optimizar la lectura / escritura desde el
+  disco en R
+\item
+  El tutorial de rhdf5:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \href{http://www.bioconductor.org/packages/release/bioc/vignettes/rhdf5\%20/inst/doc/rhdf5.pdf}{http://www.bioconductor.org/packages/release/bioc/vignettes/rhdf5/inst/doc/rhdf5.pdf}
+  \end{itemize}
+\item
+  El grupo HDF tiene información sobre HDF5 en general
+  \url{http://www.hdfgroup.org/HDF5/}
+\end{itemize}
+
+\hypertarget{leyendo-datos-de-la-web}{%
+\section{Leyendo datos de la web}\label{leyendo-datos-de-la-web}}
+
+Webscraping
+
+\textbf{Webscraping}: Extracción de datos de forma programada del código
+HTML de sitios web.
+
+\begin{itemize}
+\tightlist
+\item
+  Puede ser una excelente manera de obtener datos {[}Cómo Netflix hizo
+  ingeniería inversa a Hollywood{]}
+  (\url{http://www.theatlantic.com/technology/archive/2014/01/how-netflix-reverse-engineered-hollywood/282679/})
+\item
+  Muchos sitios web tienen información que puede querer leer
+  programáticamente
+\item
+  En algunos casos, esto va en contra de los términos de servicio del
+  sitio web.
+\item
+  Intentar leer demasiadas páginas demasiado rápido puede bloquear su
+  dirección IP
+\end{itemize}
+
+ejemplo
+
+\begin{center}\includegraphics[width=1\linewidth]{D:/luism/Documents/courses/assets/img/googlescholar} \end{center}
+
+\url{http://scholar.google.com/citations?user=HI-I6C0AAAAJ\&hl=en}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{con }\OtherTok{=} \FunctionTok{url}\NormalTok{(}\StringTok{"http://scholar.google.com/citations?user=HI{-}I6C0AAAAJ\&hl=en"}\NormalTok{)}
+\NormalTok{htmlCode }\OtherTok{=} \FunctionTok{readLines}\NormalTok{(con)}
+\FunctionTok{close}\NormalTok{(con)}
+\end{Highlighting}
+\end{Shaded}
+
+obteniendo informacion con paquete httr
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(httr)}
+\FunctionTok{library}\NormalTok{(XML)}
+\NormalTok{url }\OtherTok{\textless{}{-}} \StringTok{"http://scholar.google.com/citations?user=HI{-}I6C0AAAAJ\&hl=en"}
+\NormalTok{html2 }\OtherTok{=} \FunctionTok{GET}\NormalTok{(url)}
+\NormalTok{content2 }\OtherTok{=} \FunctionTok{content}\NormalTok{(html2,}\AttributeTok{as=}\StringTok{"text"}\NormalTok{)}
+\NormalTok{parsedHtml }\OtherTok{=} \FunctionTok{htmlParse}\NormalTok{(content2,}\AttributeTok{asText=}\ConstantTok{TRUE}\NormalTok{)}
+\FunctionTok{xpathSApply}\NormalTok{(parsedHtml, }\StringTok{"//title"}\NormalTok{, xmlValue)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Jeff Leek - Google Scholar"
+\end{verbatim}
+
+accesando a sitios web con contraseña
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pg1 }\OtherTok{=} \FunctionTok{GET}\NormalTok{(}\StringTok{"http://httpbin.org/basic{-}auth/user/passwd"}\NormalTok{)}
+\NormalTok{pg1}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Response [http://httpbin.org/basic-auth/user/passwd]
+##   Date: 2021-08-06 04:05
+##   Status: 401
+##   Content-Type: <unknown>
+## <EMPTY BODY>
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pg2 }\OtherTok{=} \FunctionTok{GET}\NormalTok{(}\StringTok{"http://httpbin.org/basic{-}auth/user/passwd"}\NormalTok{,}
+    \FunctionTok{authenticate}\NormalTok{(}\StringTok{"user"}\NormalTok{,}\StringTok{"passwd"}\NormalTok{))}
+\NormalTok{pg2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Response [http://httpbin.org/basic-auth/user/passwd]
+##   Date: 2021-08-06 04:05
+##   Status: 200
+##   Content-Type: application/json
+##   Size: 47 B
+## {
+##   "authenticated": true, 
+##   "user": "user"
+## }
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{names}\NormalTok{(pg2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] "url"         "status_code" "headers"     "all_headers" "cookies"    
+##  [6] "content"     "date"        "times"       "request"     "handle"
+\end{verbatim}
+
+usando handle
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{google }\OtherTok{=} \FunctionTok{handle}\NormalTok{(}\StringTok{"http://google.com"}\NormalTok{)}
+\NormalTok{pg1 }\OtherTok{=} \FunctionTok{GET}\NormalTok{(}\AttributeTok{handle=}\NormalTok{google,}\AttributeTok{path=}\StringTok{"/"}\NormalTok{)}
+\NormalTok{pg2 }\OtherTok{=} \FunctionTok{GET}\NormalTok{(}\AttributeTok{handle=}\NormalTok{google,}\AttributeTok{path=}\StringTok{"search"}\NormalTok{)}
+
+\NormalTok{pg1}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Response [http://www.google.com/]
+##   Date: 2021-08-06 04:05
+##   Status: 200
+##   Content-Type: text/html; charset=ISO-8859-1
+##   Size: 14.1 kB
+## <!doctype html><html itemscope="" itemtype="http://schema.org/WebPage" lang="...
+## var f=this||self;var h,k=[];function l(a){for(var b;a&&(!a.getAttribute||!(b=...
+## function n(a,b,c,d,g){var e="";c||-1!==b.search("&ei=")||(e="&ei="+l(d),-1===...
+## google.y={};google.sy=[];google.x=function(a,b){if(a)var c=a.id;else{do c=Mat...
+## document.documentElement.addEventListener("submit",function(b){var a;if(a=b.t...
+## </style><style>body,td,a,p,.h{font-family:arial,sans-serif}body{margin:0;over...
+## if (!iesg){document.f&&document.f.q.focus();document.gbqf&&document.gbqf.q.fo...
+## }
+## })();</script><div id="mngb"><div id=gbar><nobr><b class=gb1>Búsqueda</b> <a ...
+## else top.location='/doodles/';};})();</script><input value="AINFCbYAAAAAYQzDE...
+## ...
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pg2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Response [http://www.google.com/webhp]
+##   Date: 2021-08-06 04:05
+##   Status: 200
+##   Content-Type: text/html; charset=ISO-8859-1
+##   Size: 14.1 kB
+## <!doctype html><html itemscope="" itemtype="http://schema.org/WebPage" lang="...
+## var f=this||self;var h,k=[];function l(a){for(var b;a&&(!a.getAttribute||!(b=...
+## function n(a,b,c,d,g){var e="";c||-1!==b.search("&ei=")||(e="&ei="+l(d),-1===...
+## google.y={};google.sy=[];google.x=function(a,b){if(a)var c=a.id;else{do c=Mat...
+## document.documentElement.addEventListener("submit",function(b){var a;if(a=b.t...
+## </style><style>body,td,a,p,.h{font-family:arial,sans-serif}body{margin:0;over...
+## if (!iesg){document.f&&document.f.q.focus();document.gbqf&&document.gbqf.q.fo...
+## }
+## })();</script><div id="mngb"><div id=gbar><nobr><b class=gb1>Búsqueda</b> <a ...
+## else top.location='/doodles/';};})();</script><input value="AINFCbYAAAAAYQzDE...
+## ...
+\end{verbatim}
+
+\hypertarget{notas-y-otros-recursos-1}{%
+\subsection{Notas y otros recursos}\label{notas-y-otros-recursos-1}}
+
+\begin{itemize}
+\tightlist
+\item
+  R Bloggers tiene varios ejemplos de raspado web
+  \url{http://www.r-bloggers.com/?s=Web+Scraping}
+\item
+  El archivo de ayuda httr tiene ejemplos útiles
+  \href{http://cran.r-project.org/web/packages/httr/\%20httr.pdf}{http://cran.r-project.org/web/packages/httr/httr.pdf}
+\item
+  Ver conferencias posteriores sobre API
+\item
+  \url{http://cran.r-project.org/web/packages/httr/httr.pdf}
+\item
+  \url{http://en.wikipedia.org/wiki/Web_scraping}
+\end{itemize}
+
+\hypertarget{leyendo-de-apis}{%
+\section{Leyendo de APIs}\label{leyendo-de-apis}}
+
+Application programming interfaces(Interfaces de programación de
+aplicaciones)
+
+\begin{center}\includegraphics[width=1\linewidth]{D:/luism/Documents/courses/assets/img/03_ObtainingData/twitter} \end{center}
+
+crear una cuenta para ingresar a la API
+
+\url{https://dev.twitter.com/apps}
+
+luego crear una ``app'' y buscar los pasos para acceder a la api, el
+ejemplo siguiente es de una cuenta ya creada para fines academicos
+
+\begin{center}\includegraphics[width=1\linewidth]{D:/luism/Pictures/Saved Pictures/api1} \end{center}
+
+convertir a JSON el objeto
+
+\begin{center}\includegraphics[width=1\linewidth]{D:/luism/Pictures/Saved Pictures/api1} \end{center}
+
+En general, mira la documentación.
+
+\begin{itemize}
+\tightlist
+\item
+  httr permite solicitudes \texttt{GET},\texttt{POST},
+  \texttt{PUT},\texttt{DELETE} si está autorizado
+\item
+  Puede autenticarse con un nombre de usuario o una contraseña
+\item
+  La mayoría de las API modernas usan algo como oauth
+\item
+  httr funciona bien con Facebook, Google, Twitter, Githb, etc.
+\end{itemize}
+
+\hypertarget{reading-from-other-sources}{%
+\section{Reading from other sources}\label{reading-from-other-sources}}
+
+Hay un paquete para eso
+
+\begin{itemize}
+\tightlist
+\item
+  Roger tiene un buen video sobre cómo hay paquetes R para la mayoría de
+  las cosas a las que querrá acceder.
+\item
+  Aquí voy a revisar brevemente algunos paquetes útiles
+\item
+  En general, la mejor forma de averiguar si el paquete R existe es el
+  ``paquete R del mecanismo de almacenamiento de datos'' de Google
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Por ejemplo: ``Paquete MySQL R''
+  \end{itemize}
+\end{itemize}
+
+\emph{Interactuar más directamente con archivos}
+
+\begin{itemize}
+\tightlist
+\item
+  file: abre una conexión a un archivo de texto
+\item
+  url: abre una conexión a una URL
+\item
+  gzfile: abre una conexión a un archivo .gz
+\item
+  bzfile: abre una conexión a un archivo .bz2
+\item
+  \emph{?connections} para más información
+\item
+  Recuerde cerrar conexiones
+\end{itemize}
+
+\hypertarget{paquete-foreing}{%
+\subsection{paquete foreing}\label{paquete-foreing}}
+
+\begin{itemize}
+\tightlist
+\item
+  Carga datos de Minitab, S, SAS, SPSS, Stata, Systat
+\item
+  Funciones básicas \emph{read.foo}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    read.arff (Weka)
+  \item
+    read.dta (Stata)
+  \item
+    read.mtp (Minitab)
+  \item
+    read.octave (octava)
+  \item
+    read.spss (SPSS)
+  \item
+    read.xport (SAS)
+  \end{itemize}
+\item
+  Consulte la página de ayuda para obtener más detalles.
+\end{itemize}
+
+\url{http://cran.r-project.org/web/packages/foreign/foreign.pdf}
+
+\hypertarget{ejemplos-de-otros-paquetes-de-bases-de-datos}{%
+\subsection{Ejemplos de otros paquetes de bases de
+datos}\label{ejemplos-de-otros-paquetes-de-bases-de-datos}}
+
+\begin{itemize}
+\tightlist
+\item
+  RPostresSQL proporciona una conexión de base de datos compatible con
+  DBI desde R. Tutorial- \url{https://code.google.com/p/rpostgresql/},
+  archivo de ayuda-
+  \url{http://cran.r-project.org/web/packages/RPostgreSQL/RPostgreSQL.pdf}
+\item
+  RODBC proporciona interfaces para múltiples bases de datos, incluidas
+  PostgreQL, MySQL, Microsoft Access y SQLite. Tutorial -
+  \href{http://cran.r-project.org/web/packages/RODBC/vignettes/RODBC.\%20pdf}{http://cran.r-project.org/web/packages/RODBC/vignettes/RODBC.pdf},
+  archivo de ayuda -
+  \href{http://cran.r-project.org/web/packages/RODBC/RODBC.\%20pdf}{http://cran.r-project.org/web/packages/RODBC/RODBC.pdf}
+\item
+  RMongo \url{http://cran.r-project.org/web/packages/RMongo/RMongo.pdf}
+  (ejemplo de Rmongo \url{http://www.r-bloggers.com/r-and-mongodb/}) y
+  \href{http:\%20//cran.r-project.org/web/packages/rmongodb/rmongodb.pdf}{rmongodb}
+  proporcionan interfaces a MongoDb.
+\end{itemize}
+
+\hypertarget{leer-imuxe1genes}{%
+\subsection{Leer imágenes}\label{leer-imuxe1genes}}
+
+\begin{itemize}
+\tightlist
+\item
+  jpeg - \url{http://cran.r-project.org/web/packages/jpeg/index.html}
+\item
+  readbitmap -
+  \url{http://cran.r-project.org/web/packages/readbitmap/index.html}
+\item
+  png - \url{http://cran.r-project.org/web/packages/png/index.html}
+\item
+  EBImage (Bioconductor) -
+  \href{http://www.bioconductor.org/packages/2.13/bioc/html/EBImage.\%20html}{http://www.bioconductor.org/packages/2.13/bioc/html/EBImage.html}
+\end{itemize}
+
+\hypertarget{lectura-de-datos-gis}{%
+\subsection{Lectura de datos GIS}\label{lectura-de-datos-gis}}
+
+\begin{itemize}
+\tightlist
+\item
+  rgdal - \url{http://cran.r-project.org/web/packages/rgdal/index.html}
+\item
+  rgeos - \url{http://cran.r-project.org/web/packages/rgeos/index.html}
+\item
+  raster -
+  \url{http://cran.r-project.org/web/packages/raster/index.html}
+\end{itemize}
+
+\hypertarget{leer-datos-musicales}{%
+\subsection{Leer datos musicales}\label{leer-datos-musicales}}
+
+\begin{itemize}
+\tightlist
+\item
+  tuneR - \url{http://cran.r-project.org/web/packages/tuneR/}
+\item
+  seewave - \url{http://rug.mnhn.fr/seewave/}
+\end{itemize}
+
+\end{document}

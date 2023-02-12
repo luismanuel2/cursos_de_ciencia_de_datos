@@ -1,0 +1,442 @@
+---
+title: "semana 4"
+author: "luis"
+date: "19/7/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,fig.align = "center")
+```
+
+\tableofcontents
+
+# Regresión regularizada
+
+*Idea básica*
+
+1. Ajustar un modelo de regresión
+2. Penalizar (o reducir) los coeficientes grandes
+
+__Pros: __
+
+* Puede ayudar con la compensación de sesgo / varianza
+* Puede ayudar con la selección del modelo
+
+__Contras:__
+
+* Puede ser computacionalmente exigente en grandes conjuntos de datos
+* No funciona tan bien como bosques random forests y boosting.
+
+ejemplo motivacional:
+
+$$Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \epsilon$$
+
+donde $X_1$ y $X_2$ están casi perfectamente correlacionados (colineales). Puede aproximar este modelo por:
+
+$$Y = \beta_0 + (\beta_1 + \beta_2)X_1 + \epsilon$$
+
+El resultado es:
+
+* Obtendrá una buena estimación de $Y$
+* La estimación (de $Y$) estará sesgada
+* Podemos reducir la variación en la estimación.
+
+con datos de cancer de prostata 
+
+```{r}
+library(ElemStatLearn); data(prostate)
+str(prostate)
+```
+podemos ver que llega un punto en que el error aumenta si aumenta el número de variables 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/prostate.png")
+```
+
+entonces el patron mas comun es 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/trainingandtest.png")
+```
+
+Enfoque de selección de modelos: muestras divididas
+
+
+* Acercarse
+   1. Divida los datos en entrenamiento / prueba / validación
+   2. Trate la validación como datos de prueba, entrene todos los modelos competidores en los datos del train y elija el mejor para la validación.
+   3. Para evaluar adecuadamente el rendimiento sobre nuevos datos, aplique al conjunto de prueba.
+   4. Puede volver a dividir y volver a realizar los pasos 1-3
+
+* Dos problemas comunes
+   * Datos limitados
+   * Complejidad computacional
+   
+http://www.biostat.jhsph.edu/~ririzarr/Teaching/649/
+http://www.cbcb.umd.edu/~hcorrada/PracticalML/
+
+
+*descomposición de Error de predicción  esperado*
+
+sea $Y_i = f(X_i) + \epsilon_i$
+
+$EPE(\lambda) = E\left[\{Y - \hat{f}_{\lambda}(X)\}^2\right]$
+
+supongamos que $\hat{f}_{\lambda}$ es la estimación de los datos de entrenamiento y mira un nuevo punto de datos $X = x^*$
+
+$$E\left[\{Y - \hat{f}_{\lambda}(x^*)\}^2\right] = \sigma^2 + \{E[\hat{f}_{\lambda}(x^*)] - f(x^*)\}^2 + var[\hat{f}_\lambda(x_0)]$$
+
+\begin{center}
+= Error irreducible + sesgo$^2$ + varianza
+\end{center}
+
+*Umbral duro*
+
+* Modelo $Y = f (X) + \epsilon$
+
+* Establecer $\hat {f} _ {\lambda} (x) = x '\beta$
+
+* Restrinja solo los coeficientes $\lambda$ para que sean distintos de cero.
+
+* El problema de selección es después de elegir $\lambda$ averiguar qué coeficientes $p - \lambda$ hacen distintos de cero
+
+*Regularización para regresión*
+
+Si los $\beta_j$ no están restringidos:
+* Pueden explotar
+* Y, por tanto, son susceptibles a variaciones muy elevadas
+
+Para controlar la varianza, podríamos regularizar/reducir los coeficientes.
+
+$$PRSS(\beta) = \sum_{j=1}^n (Y_j - \sum_{i=1}^m \beta_{1i} X_{ij})^2 + P(\lambda; \beta)$$
+donde $PRSS$ es una forma penalizada de la suma de cuadrados. Cosas que se buscan comúnmente
+
+* La penalización reduce la complejidad
+* La penalización reduce la varianza
+* La penalización respeta la estructura del problema.
+
+## Regresion Ridge 
+
+Resuelve:
+
+$$\sum_{i=1}^N \left(y_i - \beta_0 + \sum_{j=1}^p x_{ij}\beta_j \right)^2 + \lambda \sum_{j=1}^p \beta_j^2$$
+equivalente a resolver 
+
+$\sum_{i=1}^N \left(y_i - \beta_0 + \sum_{j=1}^p x_{ij}\beta_j \right)^2$ sujeto a  $\sum_{j=1}^p \beta_j^2 \leq s$ donde $s$ es inversamente proporcional a $\lambda$
+
+La inclusión de $\lambda$ hace que el problema no sea singular incluso si $X ^ TX$ no es invertible.
+
+trayectorias de los coeficentes al aumentar $\lambda$
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/ridgepath.png")
+```
+
+Parámetro de ajuste $\lambda$
+
+* $\lambda$ controla el tamaño de los coeficientes
+* $\lambda$ controla la cantidad de regularización {\bf}
+* cuando $\lambda\rightarrow 0$ obtenemos la solución de mínimos cuadrados
+* cuando $\lambda\rightarrow \infty$ tenemos $\hat {\beta} _ {\lambda = \infty} ^ {ridge} = 0$
+
+## regresion lasso 
+
+$\sum_{i=1}^N \left(y_i - \beta_0 + \sum_{j=1}^p x_{ij}\beta_j \right)^2$ sujeto a $\sum_{j=1}^p |\beta_j| \leq s$ 
+
+equivalente a 
+
+$$\sum_{i=1}^N \left(y_i - \beta_0 + \sum_{j=1}^p x_{ij}\beta_j \right)^2 + \lambda \sum_{j=1}^p |\beta_j|$$
+Para matrices de diseño ortonormal (¡no la norma!), Esto tiene una solución de forma cerrada
+
+$$\hat{\beta}_j = sign(\hat{\beta}_j^0)(|\hat{\beta}_j^0 - \gamma)^{+}$$
+
+but not in general. 
+
+http://www.biostat.jhsph.edu/~ririzarr/Teaching/649/
+http://www.cbcb.umd.edu/~hcorrada/PracticalML/
+
+## Notas y futuras lecturas 
+
+
+* [Hector Corrada Bravo's Practical Machine Learning lecture notes](http://www.cbcb.umd.edu/~hcorrada/PracticalML/)
+* [Hector's penalized regression reading list](http://www.cbcb.umd.edu/~hcorrada/AMSC689.html#readings)
+* [Elements of Statistical Learning](http://statweb.stanford.edu/~tibs/ElemStatLearn/)
+* In `caret` methods are:
+  * `ridge`
+  * `lasso`
+  * `relaxo`
+  
+# combinando predictores 
+
+Ideas claves
+
+* Puede combinar clasificadores promediando / votando
+* La combinación de clasificadores mejora la precisión
+* La combinación de clasificadores reduce la interpretabilidad.
+* Boosting, bagging, y random forests son variantes de este tema.
+
+
+_Supongamos que tenemos 5 clasificadores completamente independientes
+
+Si la precisión es del 70% para cada uno:
+   * $10\times(0.7)^3(0.3)^2+5\times(0.7)^4(0.3)^2+(0.7)^5$
+   * 83,7% de precisión del voto mayoritario
+
+Con 101 clasificadores independientes
+   * 99,9% de precisión del voto mayoritario_
+   
+[como se calculo](https://github.com/lgreski/datasciencectacontent/blob/master/markdown/pml-combiningPredictorsBinomial.md)
+   
+*Enfoques para combinar clasificadores*
+
+1.  Bagging, boosting, random forests
+   * Suelen combinar clasificadores similares
+2. Combinando diferentes clasificadores
+   * Modelo de apilamiento (stacking)
+   * Modelos de ensamble (ensembling)
+
+ejemplo con datos wage 
+
+__creando conjuntos de  training, test y validation__
+
+```{r wage}
+library(ISLR); data(Wage); library(ggplot2); library(caret);
+Wage <- subset(Wage,select=-c(logwage))
+
+# Create a building data set and validation set
+inBuild <- createDataPartition(y=Wage$wage,
+                              p=0.7, list=FALSE)
+validation <- Wage[-inBuild,]; buildData <- Wage[inBuild,]
+
+inTrain <- createDataPartition(y=buildData$wage,
+                              p=0.7, list=FALSE)
+training <- buildData[inTrain,]; testing <- buildData[-inTrain,]
+
+dim(training)
+dim(testing)
+dim(validation)
+```
+
+despues creamos 2 diferentes modelos 
+
+```{r}
+mod1 <- train(wage ~.,method="glm",data=training)
+mod2 <- train(wage ~.,method="rf",
+              data=training, 
+              trControl = trainControl(method="cv"),number=3)
+```
+
+
+luego predecimos en el connjunto de testing, por el color vemos que no funciona del todo bien 
+
+```{r}
+pred1 <- predict(mod1,testing); pred2 <- predict(mod2,testing)
+qplot(pred1,pred2,colour=wage,data=testing)
+```
+ahora construimos un modelos que combine los dos predictores 
+
+```{r}
+predDF <- data.frame(pred1,pred2,wage=testing$wage)
+combModFit <- train(wage ~.,method="gam",data=predDF)
+combPred <- predict(combModFit,predDF)
+```
+
+errores en testing 
+
+```{r}
+sqrt(sum((pred1-testing$wage)^2))
+sqrt(sum((pred2-testing$wage)^2))
+sqrt(sum((combPred-testing$wage)^2))
+```
+prediciendo en el conjunto de validacion 
+
+```{r}
+pred1V <- predict(mod1,validation); pred2V <- predict(mod2,validation)
+predVDF <- data.frame(pred1=pred1V,pred2=pred2V)
+combPredV <- predict(combModFit,predVDF)
+```
+
+evaluando en validacion 
+```{r}
+sqrt(sum((pred1V-validation$wage)^2))
+sqrt(sum((pred2V-validation$wage)^2))
+sqrt(sum((combPredV-validation$wage)^2))
+```
+
+## Notas y otros recursos
+
+* Incluso una simple mezcla puede ser útil
+* Modelo típico para datos binarios/multiclase
+   * Construye un número impar de modelos.
+   * Predecir con cada modelo
+   * Predecir la clase por mayoría de votos
+* Esto puede volverse mucho más complicado
+   * Mezcla simple de intercalación: [caretEnsemble](https://github.com/zachmayer/caretEnsemble) (¡úsala bajo tu propio riesgo!)
+   * Wikipedia [ensemlbe learning](http://en.wikipedia.org/wiki/Ensemble_learning)
+   
+# Pronosticos 
+
+¿Que es diferente?
+
+* Los datos dependen del tiempo
+* Tipos de patrones específicos
+    * Tendencias: aumento o disminución a largo plazo
+    * Patrones estacionales: patrones relacionados con la época de la semana, mes, año, etc.
+    * Ciclos: patrones que suben y bajan periódicamente
+* Submuestreo en entrenamiento / prueba es más complicado
+* Surgen problemas similares en los datos espaciales
+    * Dependencia entre observaciones cercanas
+    * Efectos específicos de la ubicación
+* Normalmente, el objetivo es predecir una o más observaciones en el futuro.
+* Se pueden utilizar todas las predicciones estándar (¡con precaución!)
+* ¡Cuidado con las correlaciones falsas!
+* También es común en análisis geográficos
+** Beware extrapolation!*
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/extrapolation.jpg")
+```
+
+ejemplo con datos de google 
+
+```{r}
+library(quantmod)
+from.dat <- as.Date("01/01/08", format="%m/%d/%y")
+to.dat <- as.Date("12/31/13", format="%m/%d/%y")
+getSymbols("GOOG", src="yahoo", from = from.dat, to = to.dat)
+head(GOOG)
+```
+Resumir mensualmente y almacenar como series de tiempo
+
+```{r}
+mGoog <- to.monthly(GOOG)
+googOpen <- Op(mGoog)
+ts1 <- ts(googOpen,frequency=12)
+plot(ts1,xlab="Years+1", ylab="GOOG")
+```
+
+Ejemplo de descomposición de series de tiempo
+
+* __Tendencia__: patrón en constante aumento a lo largo del tiempo
+* __estacional__: cuando hay un patrón durante un período de tiempo fijo que se repite.
+* __ciclo__: cuando los datos aumentan y disminuyen durante períodos no fijos
+[https://www.otexts.org/fpp/6/1](https://www.otexts.org/fpp/6/1)
+
+```{r}
+plot(decompose(ts1),xlab="Years+1")
+```
+
+creando conjuntos de prueba y de entrenamiento 
+
+```{r}
+ts1Train <- window(ts1,start=1,end=5)
+ts1Test <- window(ts1,start=5,end=(7-0.01))
+ts1Train
+```
+
+medias moviles simples 
+
+$$ Y_{t}=\frac{1}{2*k+1}\sum_{j=-k}^k {y_{t+j}}$$
+```{r}
+library(forecast)
+plot(ts1Train)
+lines(ma(ts1Train,order=3),col="red")
+```
+
+suavizado exponencial 
+
+$$\hat{y}_{t+1} = \alpha y_t + (1-\alpha)\hat{y}_{t-1}$$
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/08_PredictionAndMachineLearning/extrapolation.jpg")
+```
+
+```{r}
+#ets1 <- ets(ts1Train,model="MMM")
+#fcast <- forecast(ets1)
+#plot(fcast); lines(ts1Test,col="red")
+```
+
+obteniendo la precision 
+```{r}
+#accuracy(fcast,ts1Test)
+```
+
+## Notas y otros recursos
+
+* [Pronóstico y predicción de series temporales](http://en.wikipedia.org/wiki/Forecasting) es un campo completo
+* Rob Hyndman [Pronóstico: principios y práctica](https://www.otexts.org/fpp/) es un buen lugar para comenzar
+* Precauciones
+   * Tenga cuidado con las correlaciones falsas
+   * Tenga cuidado con lo lejos que predice (extrapolación)
+   * Tenga cuidado con las dependencias a lo largo del tiempo
+* Ver paquetes de [quantmod](http://cran.r-project.org/web/packages/quantmod/quantmod.pdf) o [quandl] (http://www.quandl.com/help/packages/r) para problemas relacionados con las finanzas.
+
+
+
+# prediccion sin supervision 
+
+Ideas claves
+
+* A veces no conoce las etiquetas para la predicción
+* Para construir un predictor
+   * Crear clústeres
+   * nombrar lis clústeres 
+   * Construir predictor para clústeres
+* En un nuevo conjunto de datos
+   * Predecir clústeres
+   
+Ejemplo de iris ignorando las etiquetas de las especies
+
+```{r}
+data(iris); library(ggplot2)
+inTrain <- createDataPartition(y=iris$Species,
+                              p=0.7, list=FALSE)
+training <- iris[inTrain,]
+testing <- iris[-inTrain,]
+dim(training); dim(testing)
+```
+en el siguiente dendograma vemos que con una distancia de 3.5 podemos crear 3 grupos 
+```{r}
+distra<-dist(subset(training,select=-c(Species)))
+hc<-hclust(distra)
+plot(hc)
+```
+ahora creemos 3 grpos con k-means 
+
+```{r}
+kMeans1 <- kmeans(subset(training,select=-c(Species)),centers=3)
+training$clusters <- as.factor(kMeans1$cluster)
+qplot(Petal.Width,Petal.Length,colour=clusters,data=training)
+```
+comparando con las etiquetas reales 
+
+```{r}
+table(kMeans1$cluster,training$Species)
+```
+
+construyendo un predictor 
+
+```{r}
+modFit <- train(clusters ~.,data=subset(training,select=-c(Species)),method="rpart")
+table(predict(modFit,training),training$Species)
+```
+
+aplicando en el conjunto de prueba 
+
+```{r}
+testClusterPred <- predict(modFit,testing) 
+table(testClusterPred ,testing$Species)
+```
+
+## Notas y lectura adicional
+
+* La función cl_predict en el paquete clue proporciona una funcionalidad similar
+* ¡Tenga cuidado con la interpretación excesiva de los grupos!
+* Este es un enfoque básico para [motores de recomendación](http://en.wikipedia.org/wiki/Recommender_system)
+* [Elementos del aprendizaje estadístico](http://www-stat.stanford.edu/~tibs/ElemStatLearn/)
+* [Introducción al aprendizaje estadístico](http://www-bcf.usc.edu/~gareth/ISL/)
+
+
+

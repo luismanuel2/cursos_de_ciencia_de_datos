@@ -1,0 +1,392 @@
+---
+title: "semana_1"
+author: "Luis Ambrocio"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,fig.align = "center")
+```
+
+\tableofcontents
+
+# Motivacion y prerequisitos 
+
+Sobre este curso
+
+* Este curso cubre las ideas básicas para preparar los datos para su análisis.
+   * Encontrar y extraer datos sin procesar
+   * Principios de ordenación de datos y cómo hacer que los datos estén ordenados
+   * Implementación práctica a través de una variedad de paquetes R
+   
+Cómo desea que se vean los datos
+   
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/03_ObtainingData/excel.png")
+```
+
+como los datos realmente se ven 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/03_ObtainingData/fastq.png")
+```
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/03_ObtainingData/twitter.png")
+```
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/03_ObtainingData/medicalrecord.png")
+```
+
+la meta de este curso 
+
+Datos brutos -> Script de procesamiento -> datos ordenados-> análisis de datos -> comunicación de datos
+
+# datos crudos y procesados 
+
+__Datos crudos__
+* La fuente original de los datos
+* A menudo es difícil de usar para análisis de datos.
+* Análisis de datos _incluye_ procesamiento
+* Es posible que los datos sin procesar solo necesiten procesarse una vez
+
+[http://en.wikipedia.org/wiki/Raw_data](http://en.wikipedia.org/wiki/Raw_data)
+
+__Datos procesados__
+* Datos que están listos para analizar
+* El procesamiento puede incluir fusión, subconjunto, transformación, etc.
+* Puede haber estándares para el procesamiento.
+* Todos los pasos deben registrarse
+
+[http://en.wikipedia.org/wiki/Computer_data_processing](http://en.wikipedia.org/wiki/Computer_data_processing)
+
+# Los componentes de los datos ordenados
+
+ Las cuatro cosas que debes tener
+
+1. Los datos brutos.
+2. Un conjunto de datos ordenado
+3. Un libro de códigos que describe cada variable y sus valores en el ordenado conjunto de datos.
+4. Una receta explícita y exacta que usaste para ir de 1 -> 2,3.
+
+*Los datos brutos*
+
+
+* El extraño archivo binario que escupe su máquina de medición
+* El archivo de Excel sin formato con 10 hojas de trabajo que le envió la empresa con la que contrató
+* Los datos JSON complicados que obtuviste al raspar la API de Twitter
+* Los números ingresados a mano que recolectó mirando a través de un microscopio
+
+_Sabes que los datos sin procesar están en el formato correcto si_
+
+1. No ejecuté ningún software en los datos.
+2. No manipuló ninguno de los números de los datos.
+3. No eliminó ningún dato del conjunto de datos.
+4. No resumió los datos de ninguna manera
+
+
+*los datos ordenados*
+
+1. Cada variable que mida debe estar en una columna.
+2. Cada observación diferente de esa variable debe estar en una fila diferente
+3. Debe haber una tabla para cada "tipo" de variable.
+4. Si tiene varias tablas, deben incluir una columna en la tabla que permita vincularlas
+
+_Algunos otros consejos importantes_
+
+* Incluya una fila en la parte superior de cada archivo con nombres de variables.
+* Hacer que los nombres de las variables sean legibles por humanos AgeAtDiagnosis en lugar de AgeDx
+* En general, los datos deben guardarse en un archivo por tabla.
+
+*El libro de códigos*
+
+1. Información sobre las variables (¡incluidas las unidades!) En el conjunto de datos no contenidas en los datos ordenados
+2. Información sobre las elecciones resumidas que hizo
+3. Información sobre el diseño del estudio experimental que utilizó
+
+
+_Algunos otros consejos importantes_
+
+* Un formato común para este documento es un archivo de texto / Word.
+* Debe haber una sección llamada "Diseño del estudio" que tenga una descripción detallada de cómo recopiló los datos.
+* Debe haber una sección llamada "Libro de códigos" que describa cada variable y sus unidades.
+
+La lista de instrucciones
+
+* Idealmente un script de computadora (en R :-), pero supongo que Python también está bien ...)
+* La entrada para el script son los datos sin procesar
+* La salida son los datos procesados y ordenados.
+* No hay parámetros para el script.
+
+En algunos casos, no será posible escribir todos los pasos. En ese caso, debe proporcionar instrucciones como:
+
+1. Paso 1: tome el archivo sin procesar, ejecute la versión 3.1.2 del software de resumen con los parámetros a = 1, b = 2, c = 3
+2. Paso 2: ejecute el software por separado para cada muestra
+3. Paso 3: tome la columna tres de outputfile.out para cada muestra y esa es la fila correspondiente en el conjunto de datos de salida
+
+[https://github.com/jtleek/datasharing](https://github.com/jtleek/datasharing)
+
+# Leyendo XML
+
+* Lenguaje de marcado extensible
+* Se utiliza con frecuencia para almacenar datos estructurados.
+* Particularmente utilizado en aplicaciones de Internet.
+* La extracción de XML es la base de la mayoría de los web scraping.
+* Componentes
+   * Marcado: etiquetas que dan estructura al texto
+   * Contenido: el texto real del documento
+   
+- etiquetas, elementos y atributos
+
+* Las etiquetas corresponden a las etiquetas generales
+   * Etiquetas de inicio `<sección>`
+   * Etiquetas finales `</section>`
+   * Etiquetas vacías `<line-break />`
+* Los elementos son ejemplos específicos de etiquetas.
+   * `<Saludo> Hola, mundo </Saludo>`
+* Los atributos son componentes de la etiqueta
+   * `<img src =" jeff.jpg "alt =" instructor "/>`
+   * `<step number =" 3 "> Conecta A con B. </step>`
+
+Ejemplo de un archivo XML 
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/03_ObtainingData/xmlexample.png")
+```
+
+Leyendo el archivo en R 
+
+```{r}
+library(XML)
+if(!file.exists("D:/luism/Descargas/simple.xml")){
+fileUrl <- "http://www.w3schools.com/xml/simple.xml"
+download.file(fileUrl, destfile = "D:/luism/Descargas/simple.xml")}
+
+doc <- xmlTreeParse("D:/luism/Descargas/simple.xml", useInternalNodes = TRUE)
+
+rootNode <- xmlRoot(doc)
+xmlName(rootNode)
+names(rootNode)
+```
+
+Acceda directamente a partes del documento XML
+
+```{r }
+rootNode[[1]]
+rootNode[[1]][[1]]
+```
+Extrae partes del archivo mediante programación
+
+```{r}
+xmlSApply(rootNode,xmlValue)
+```
+
+*XPath*
+
+* _/node_ Nodo de nivel superior
+* _//nodo_ Nodo en cualquier nivel
+* _node[@attr-name]_ Nodo con un nombre de atributo
+* _node[@attr-name = 'bob']_ Nodo con nombre de atributo attr-name = 'bob'
+
+Information from: [http://www.stat.berkeley.edu/~statcur/Workshop2/Presentations/XML.pdf](http://www.stat.berkeley.edu/~statcur/Workshop2/Presentations/XML.pdf)
+
+```{r}
+xpathSApply(rootNode,"//name",xmlValue)
+xpathSApply(rootNode,"//price",xmlValue)
+```
+## Notas y otros recursos 
+
+* Official XML tutorials [short](http://www.omegahat.org/RSXML/shortIntro.pdf), [long](http://www.omegahat.org/RSXML/Tour.pdf)
+* [An outstanding guide to the XML package](http://www.stat.berkeley.edu/~statcur/Workshop2/Presentations/XML.pdf)
+* [http://en.wikipedia.org/wiki/XML](http://en.wikipedia.org/wiki/XML)
+
+# Leyendo JSON 
+
+* Notación de objetos de Javascript(Javascript Object Notation)
+* Almacenamiento de datos ligero
+* Formato común para datos de interfaces de programación de aplicaciones (API)
+* Estructura similar a XML pero diferente sintaxis / formato
+* Datos almacenados como
+   * Números (double)
+   * Strings (entre comillas dobles)
+   * Booleano ( _verdadero_ o _falso_)
+   * Matriz (ordenada, separada por comas encerrada entre corchetes _[]_)
+   * Objeto (desordenado, colección de claves separada por comas: pares de valores entre llaves _{}_)
+
+```{r,echo=FALSE,out.width='100%'} 
+knitr::include_graphics("D:/luism/Documents/courses/assets/img/03_ObtainingData/githubjson.png")
+```
+
+leyendo datos:
+
+```{r}
+library(jsonlite)
+jsonData <- fromJSON("https://api.github.com/users/jtleek/repos")
+names(jsonData)
+jsonData$name
+```
+Objetos anidados en JSON
+
+```{r}
+names(jsonData$owner)
+jsonData$owner$login
+```
+
+escribir data frames en JSON 
+
+```{r}
+myjson <- toJSON(head(iris), pretty=TRUE)
+cat(myjson)
+```
+
+de JSON a dataframe 
+
+```{r}
+iris2 <- fromJSON(myjson)
+head(iris2)
+```
+
+## otros recursos
+
+* [http://www.json.org/](http://www.json.org/)
+* A good tutorial on jsonlite - [http://www.r-bloggers.com/new-package-jsonlite-a-smarter-json-encoderdecoder/](http://www.r-bloggers.com/new-package-jsonlite-a-smarter-json-encoderdecoder/)
+* [jsonlite vignette](http://cran.r-project.org/web/packages/jsonlite/vignettes/json-mapping.pdf)
+* [http://en.wikipedia.org/wiki/JSON](http://en.wikipedia.org/wiki/JSON)
+
+# Usando data.table
+
+* Hereda de dataframe 
+  * Todas las funciones que aceptan data.frame funcionan en data.table
+* Escrito en C por lo que es mucho más rápido
+* Mucho, mucho más rápido al crear subconjuntos, agrupar y actualizar
+
+creacion de tablas 
+```{r}
+library(data.table)
+DF = data.frame(x=rnorm(9),y=rep(c("a","b","c"),each=3),z=rnorm(9))
+head(DF,3)
+DT = data.table(x=rnorm(9),y=rep(c("a","b","c"),each=3),z=rnorm(9))
+head(DT,3)
+```
+mirar todos los data.tables guardados en la memoria 
+
+```{r}
+tables()
+```
+
+extraer subconjuntos 
+
+```{r}
+DT[2,]
+DT[DT$y=="a",]
+DT[c(2,3),]
+DT[,c(2,3)]
+```
+
+Subconjunto de columnas en data.table
+
+* La función de subconjunto se modifica para data.table
+* El argumento que pasa después de la coma se llama "expresión"
+* En R, una expresión es una colección de declaraciones encerradas entre corchetes
+
+ejemplos de declaraciones 
+```{r}
+{
+  x = 1
+  y = 2
+}
+k = {print(10); 5}
+print(k)
+```
+
+Calcular valores para variables con expresiones
+
+```{r}
+DT[,list(mean(x),sum(z))]
+DT[,table(y)]
+```
+
+agregando nuevas columnas 
+
+```{r}
+
+DT[,w:=z^2]
+
+DT2 <- DT
+DT[, y:= 2]
+
+# el cambio se hace desde la original a la copia 
+head(DT,n=3)
+head(DT2,n=3)
+```
+
+multiples operaciones 
+
+```{r}
+DT[,m:= {tmp <- (x+z); log2(tmp+5)}]
+```
+
+operaciones similares a plyr
+
+```{r}
+DT[,a:=x>0]
+DT[,b:= mean(x+w),by=a]
+```
+
+*Variables especiales*
+
+`.N` Un número entero, de longitud 1, que contiene el número de elementos de un nivel de factor
+
+```{r}
+set.seed(123);
+DT <- data.table(x=sample(letters[1:3], 1E5, TRUE))
+DT[, .N, by=x]
+```
+
+llaves 
+```{r}
+DT <- data.table(x=rep(c("a","b","c"),each=100), y=rnorm(300))
+setkey(DT, x)
+DT['a']
+```
+
+uniones
+
+```{r}
+DT1 <- data.table(x=c('a', 'a', 'b', 'dt1'), y=1:4)
+DT2 <- data.table(x=c('a', 'b', 'dt2'), z=5:7)
+setkey(DT1, x); setkey(DT2, x)
+merge(DT1, DT2)
+```
+
+una caracteristica es la lectura rapida 
+
+```{r}
+big_df <- data.frame(x=rnorm(1E6), y=rnorm(1E6))
+file <- tempfile()
+write.table(big_df, file=file, row.names=FALSE, col.names=TRUE, sep="\t", quote=FALSE)
+system.time(fread(file))
+system.time(read.table(file, header=TRUE, sep="\t"))
+```
+
+## Resumen y lectura adicional
+
+* La última versión de desarrollo contiene nuevas funciones como `melt` y` dcast` para data.tables
+ * [https://r-forge.r-project.org/scm/viewvc.php/pkg/NEWS?view=markup&root=datatable](https://r-forge.r-project.org/scm/viewvc .php / pkg / NEWS? view = markup & root = datatable)
+* Aquí hay una lista de diferencias entre data.table y data.frame
+ * [http://stackoverflow.com/questions/13618488/what-you-can-do-with-data-frame-that-you-cant-in-data-table](http://stackoverflow.com/questions / 13618488 / qué-puede-hacer-con-el-marco-de-datos-que-no-puede-en-la-tabla-de-datos)
+* Notas basadas en las notas de Raphael Gottardo
+ * [https://github.com/raphg/Biostat-578/blob/master/Advanced_data_manipulation.Rpres](https://github.com/raphg/Biostat-578/blob/master/Advanced_data_manipulation .Rpres), quien los obtuvo de Kevin Ushey.
+
+
+
+
+
+
+
+
+
+
+
+

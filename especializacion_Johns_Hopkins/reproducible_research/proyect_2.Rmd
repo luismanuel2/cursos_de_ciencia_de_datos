@@ -1,0 +1,19 @@
+---
+title: "proyect_2"
+author: "luis manuel"
+date: "19/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message=FALSE)
+```
+
+## Data Processing 
+
+first We downlodad dat from  [link](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2 "Storm Data") and unzip the data 
+```{r}
+if (!is.file("Storm_Data.zip")){
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2","Storm_Data")}
+
+```

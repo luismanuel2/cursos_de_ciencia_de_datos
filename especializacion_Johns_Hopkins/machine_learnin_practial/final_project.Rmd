@@ -1,0 +1,114 @@
+---
+title: "course project PML"
+author: "Luis Ambrocio"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,fig.align = "center",error=TRUE)
+```
+
+Using devices such as _Jawbone Up_, _Nike FuelBand_, and _Fitbit_ it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways.
+
+We are going to create a model with the data set provided to predict how the exercise was performed, so first we are going to download the data 
+
+```{r}
+if(!file.exists("pml-training.csv")){
+  download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv",destfile = "pml-training.csv")
+}
+data<-read.csv("pml-training.csv")
+str(data)
+```
+
+now we see that the first variable is insignificant because it only contains the row number, then we have to convert the variable cvtd_timestamp to Date and the variables class, user_name, new_window to factor because its current class is character
+
+```{r}
+data<-data[,-1]
+data$cvtd_timestamp<-as.Date(data$cvtd_timestamp,tryFormats = c("%d/%m/%Y"))
+data$classe<-as.factor(data$classe)
+data$user_name<-as.factor(data$user_name)
+data$new_window<-as.factor(data$new_window)
+```
+
+now we see that some variables have character class but it should be numeric, we are going to change the class
+
+```{r}
+data<-lapply(data, function(x){
+                    cla<-class(x)
+                    if(cla=="character"){
+                      x<-as.numeric(x)
+                    }
+                    x})
+data<-as.data.frame(data)
+```
+
+now we are going to eliminate the variables that have variance near to 0 and eliminate the NA. It was decided to eliminate the variables with variance close to 0 since a model was tested with these variables and another one removing them and the most accurate was when they were removed
+
+```{r}
+library(caret);
+nas<-sapply(data, function(x){
+                  mean(is.na(x))>0.9})
+data<-data[,!nas]
+nzv<-nearZeroVar(data[,-ncol(data)],saveMetrics=TRUE)
+data<-data[,!nzv$nzv]
+classe<-data$classe
+pre<-preProcess(data[,-ncol(data)],method="knnImpute")
+data<-predict(pre,data[,-ncol(data)])
+data$classe<-classe
+```
+
+```{r}
+str(data)
+```
+
+
+now we create a test set and a training set
+
+```{r}
+inTrain <-createDataPartition(y=data$classe,p=0.7,list=FALSE)
+training <- data[inTrain,] 
+testing <- data[-inTrain,]
+```
+
+we are going to create a model using Linear Discriminant Analysis. To choose this method, 4 models were tested: trees, random forests, LDA and Naive Bayesian Classifier, of which the least time consuming were trees and LDA, and of these two the most accurate was LDA.
+
+```{r}
+mod3<-train(classe ~.,data=training,method="lda")
+pred3<-predict(mod3,newdata=testing)
+confusionMatrix(pred3,testing$classe)$overall['Accuracy']
+```
+
+now we are going to predict the 20 test cases. First we do the same cleaning and preprocessing
+
+```{r}
+if(!file.exists("pml-testing.csv")){
+  download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv",destfile = "pml-testing.csv")
+}
+test<-read.csv("pml-testing.csv")
+test<-test[,-1]
+test$cvtd_timestamp<-as.Date(test$cvtd_timestamp,tryFormats = c("%d/%m/%Y"))
+test$user_name<-as.factor(test$user_name)
+test$new_window<-as.factor(test$new_window)
+test<-lapply(test, function(x){
+                    cla<-class(x)
+                    if(cla=="character"){
+                      x<-as.numeric(x)
+                    }
+                    x})
+test<-as.data.frame(test)
+test<-test[,!nas]
+test<-test[,!nzv$nzv]
+test$problem_id<-NULL
+test<-predict(pre,test)
+
+predict(mod3,newdata=test)
+```
+
+
+
+
+
+
+
+
+

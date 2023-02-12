@@ -1,0 +1,448 @@
+---
+title: "semana_2"
+author: "Luis Ambrocio"
+date: "17/8/2021"
+output: 
+  pdf_document: 
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = F,warning = F,fig.align = "center")
+```
+
+# graficacion en lattice 
+
+
+
+**Funciones de lattice**
+
+- `xyplot`: esta es la función principal para crear diagramas de dispersión
+- `bwplot`: diagramas de caja y bigotes (" diagramas de caja ")
+- `histogram`: histogramas
+- `stripplot`: como un diagrama de caja pero con puntos reales
+- `dotplot`: traza puntos en "cuerdas de violín "
+- `splom`: matriz de diagramas de dispersión; como "pares" en el sistema de trazado base
+- `levelplot`,` contourplot`: para trazar datos de "imagen
+
+
+Las funciones de lattice generalmente toman una fórmula para su primer argumento, generalmente de la forma
+
+```r
+xyplot(y ~ x | f * g, data)
+```
+- Usamos la *notación de fórmula* aquí, de ahí el `~`.
+
+- A la izquierda de ~ está la variable del eje y, a la derecha está la variable del eje x
+
+- f y g son _variables condicionantes_ - son opcionales
+   - el * indica una interacción entre dos variables
+
+- El segundo argumento es el marco de datos o la lista desde la que se deben buscar las variables en la fórmula.
+
+   - Si no se pasa ningún marco de datos o lista, se utiliza el marco principal.
+
+- Si no se pasan otros argumentos, hay valores predeterminados que se pueden utilizar.
+
+
+
+```{r,fig.height=5}
+library(lattice)
+library(datasets)
+## Simple scatterplot
+xyplot(Ozone ~ Wind, data = airquality)
+```
+
+
+```{r,fig.width=12,fig.height=4}
+
+## Convert 'Month' to a factor variable
+airquality <- transform(airquality, Month = factor(Month)) 
+xyplot(Ozone ~ Wind | Month, data = airquality, layout = c(5, 1))
+```
+
+## comportamiento de lattice 
+
+Las funciones de lattice se comportan de manera diferente a las funciones gráficas base de una manera crítica.
+
+- Las funciones gráficas base trazan datos directamente en el dispositivo gráfico (pantalla, archivo PDF, etc.)
+
+- Las funciones de gráficos de lattice devuelven un objeto de clase **trellis**
+
+- Los métodos de impresión para las funciones de lattice realmente hacen el trabajo de trazar los datos en el dispositivo gráfico.
+
+- Las funciones de lattice devuelven "objetos de trazado" que, en principio, pueden almacenarse (pero normalmente es mejor guardar el código y los datos).
+
+- En la línea de comando, los objetos trellis se *imprimen automáticamente* para que parezca que la función está trazando los datos
+
+
+```{r,fig.height=4,fig.width=5}
+p <- xyplot(Ozone ~ Wind, data = airquality)  ## Nothing happens!
+print(p)  ## Plot appears
+```
+
+
+
+* Las funciones de lattice tienen una **función de panel** que controla lo que sucede dentro de cada panel de la trama.
+
+* El paquete *lattice* viene con funciones de panel predeterminadas, pero puede proporcionar las suyas propias si desea personalizar lo que sucede en cada panel
+
+* Las funciones del panel reciben las coordenadas x/y de los puntos de datos en su panel (junto con cualquier argumento opcional)
+
+
+```{r,fig.height=4,fig.width=8}
+set.seed(10)
+x <- rnorm(100)
+f <- rep(0:1, each = 50)
+y <- x + f - f * x+ rnorm(100, sd = 0.5)
+f <- factor(f, labels = c("Group 1", "Group 2"))
+xyplot(y ~ x | f, layout = c(2, 1))  ## Plot with 2 panels
+```
+
+
+```{r,fig.height=4}
+## Custom panel function
+xyplot(y ~ x | f, panel = function(x, y, ...) {
+       panel.xyplot(x, y, ...)  ## First call the default panel function for 'xyplot'
+       panel.abline(h = median(y), lty = 2)  ## Add a horizontal line at the median
+})
+```
+
+
+```{r,fig.height=4}
+## Custom panel function
+xyplot(y ~ x | f, panel = function(x, y, ...) {
+               panel.xyplot(x, y, ...)  ## First call default panel function
+               panel.lmline(x, y, col = 2)  ## Overlay a simple linear regression line
+       })
+```
+
+Gráfico de lattice de muchos paneles: ejemplo de MAACS
+
+* Estudio: Estudio de cohorte de alérgenos en ratones y asma (MAACS)
+
+* Sujetos del estudio: niños con asma que viven en la ciudad de Baltimore, muchos alérgicos al alérgeno del ratón
+
+* Diseño: Estudio observacional, visita domiciliaria basal + cada 3 meses durante un año.
+
+* Pregunta: ¿Cómo varía el alérgeno del ratón en el aire en interiores con el tiempo y entre sujetos?
+
+
+[Ahluwalia et al., *Journal of Allergy and Clinical Immunology*, 2013](http://www.ncbi.nlm.nih.gov/pubmed/23810154)
+
+
+```{r,echo=FALSE,cache=TRUE,fig.width=12}
+
+env <- readRDS("D:/luism/Documents/courses/04_ExploratoryAnalysis/semana 2/PlottingLattice/maacs_env.rds")
+env <- transform(env, MxNum = factor(MxNum))
+xyplot(log2(airmus) ~ VisitNum | MxNum, data = env, strip = FALSE, pch = 20, xlab = "Visit Number", ylab = expression(Log[2] * " Airborne Mouse Allergen"), main = "Mouse Allergen and Asthma Cohort Study (Baltimore City)")
+```
+
+## Resumen
+
+* Los diagramas de lattice se construyen con una sola llamada de función a una función de lattice central (por ejemplo, `xyplot`)
+
+* Los aspectos como los márgenes y el espaciado se manejan automáticamente y los valores predeterminados suelen ser suficientes
+
+* El sistema de lattice es ideal para crear parcelas de acondicionamiento en las que se examina el mismo tipo de parcela en muchas condiciones diferentes.
+
+* Las funciones del panel se pueden especificar / personalizar para modificar lo que se traza en cada uno de los paneles de trazado.
+
+
+# ggplot2
+
+¿Qué es ggplot2?
+
+- Una implementación de _La gramática de los gráficos_ por Leland Wilkinson
+- Escrito por Hadley Wickham (mientras era estudiante de posgrado en Iowa State)
+- Un "tercer" sistema de gráficos para R (junto con __base__ y __lattice__)
+- Disponible en CRAN a través de `install.packages ()`
+- Sitio web: http://ggplot2.org (mejor documentación)
+- La gramática de los gráficos representa una abstracción de ideas / objetos gráficos
+- Piense en "verbo", "sustantivo", "adjetivo" para los gráficos
+- Permite una "teoría" de gráficos sobre la que construir nuevos gráficos y objetos gráficos
+- "Acorta la distancia de la mente a la página"
+
+
+## Grammer of Graphics
+
+> “En resumen, la gramática nos dice que un gráfico estadístico es un __mapeo__ de datos a atributos __estéticos__ (color, forma, tamaño) de objetos __geométricos__ (puntos, líneas, barras). El gráfico también puede contener transformaciones estadísticas de los datos y se dibuja en un sistema de coordenadas específico "
+
+-del libro _ggplot2_
+
+
+- toma lo mejor de  base y lattice.
+- Se ocupa automáticamente de los espacios, el texto y los títulos, pero también le permite hacer anotaciones "agregando"
+- Similitud superficial con la lattice, pero generalmente más fácil / más intuitivo de usar
+- El modo predeterminado le permite elegir entre muchas opciones (¡pero usted puede personalizarlo!)
+
+- Funciona de manera muy similar a la función `plot` en el sistema de gráficos base
+- Busca datos en un marco de datos, similar lattice o en el entorno principal
+- Las parcelas se componen de _estética_ (tamaño, forma, color) y _geoms_ (puntos, líneas)
+
+
+- Los factores son importantes para indicar subconjuntos de datos (si van a tener propiedades diferentes); deben estar __etiquetados__
+- El `qplot ()` oculta lo que sucede debajo, lo cual está bien para la mayoría de las operaciones
+- `ggplot ()` es la función principal y muy flexible para hacer cosas que `qplot ()` no puede hacer
+
+## Componentes básicos de un gráfico ggplot2
+
+- Un _marco de datos_
+- _mapeos estéticos_: cómo se asignan los datos al color, tamaño
+- _geoms_: objetos geométricos como puntos, líneas, formas.
+- _facets_: para gráficos condicionales.
+- _stats_: transformaciones estadísticas como binning, cuantiles, suavizado.
+- _escales_: qué escala usa un mapa estético (ejemplo: masculino = rojo, femenino = azul).
+- _sistema coordinado_
+
+Parcelas edificables con ggplot2
+- Al construir parcelas en ggplot2 (en lugar de usar qplot), el modelo de "paleta del artista" puede ser la analogía más cercana
+- Las parcelas se construyen en capas.
+   - Trazar los datos
+   - Superponer un resumen
+   - Metadatos y anotación
+
+
+## Exjemplos
+
+```{r}
+library(ggplot2)
+str(mpg)
+```
+
+
+```{r}
+qplot(displ, hwy, data = mpg)
+```
+
+agregando una tercera variable factor 
+
+```{r}
+qplot(displ, hwy, data = mpg, color = drv)
+
+```
+
+
+agregando "geoms"
+
+```{r}
+qplot(displ, hwy, data = mpg, geom = c("point", "smooth"))
+
+```
+
+histogramas 
+
+```{r}
+qplot(hwy, data = mpg, fill = drv)
+```
+
+
+facetas 
+
+```{r, fig.width=4.5}
+qplot(displ, hwy, data = mpg, facets = . ~ drv)
+qplot(hwy, data = mpg, facets = drv ~ ., binwidth = 2)
+```
+
+
+### datos Cohorte MAACS
+
+- Estudio de cohorte de alérgenos en ratones y asma
+- Niños de Baltimore (de 5 a 17 años)
+- Asma persistente, exacerbación en el último año
+- Estudiar el ambiente interior y su relación con la morbilidad por asma.
+- Publicación reciente: http://goo.gl/WqE9j8
+
+```{r,echo=FALSE}
+load("D:/luism/Descargas/maacs.Rda")
+```
+
+
+```{r}
+str(maacs)
+```
+
+
+
+```{r}
+qplot(log(eno), data = maacs)
+```
+
+
+
+```{r}
+qplot(log(eno), data = maacs, fill = mopos)
+```
+
+
+
+
+```{r, fig.width=4.5}
+qplot(log(eno), data = maacs, geom = "density")
+qplot(log(eno), data = maacs, geom = "density", color = mopos)
+```
+
+
+```{r, fig.width=2.7}
+qplot(log(pm25), log(eno), data = maacs)
+qplot(log(pm25), log(eno), data = maacs, shape = mopos)
+qplot(log(pm25), log(eno), data = maacs, color = mopos)
+```
+
+
+
+```{r}
+qplot(log(pm25), log(eno), data = maacs, color = mopos, 
+      geom = c("point", "smooth"), method = "lm")
+```
+
+
+
+```{r, fig.width=9}
+qplot(log(pm25), log(eno), data = maacs, geom = c("point", "smooth"), 
+      method = "lm", facets = . ~ mopos)
+```
+
+
+
+
+
+
+```{r, fig.width=9}
+library(ggplot2)
+qplot(logpm25, NocturnalSympt, data = maacs, facets = . ~ bmicat, 
+      geom = c("point", "smooth"), method = "lm")
+```
+
+### Construyendo en capas 
+
+```{r}
+head(maacs)
+g <- ggplot(maacs, aes(logpm25, NocturnalSympt))
+summary(g)
+```
+sin grafico aun 
+
+```{r, error=TRUE}
+g <- ggplot(maacs, aes(logpm25, NocturnalSympt))
+print(g)
+```
+agregando puntos 
+
+```{r}
+g <- ggplot(maacs, aes(logpm25, NocturnalSympt))
+g + geom_point()
+```
+agregando mas capas 
+
+```{r, fig.width=4.5}
+g + geom_point() + geom_smooth()
+g + geom_point() + geom_smooth(method = "lm")
+```
+
+facetas 
+
+```{r, fig.width=9}
+g + geom_point() + facet_grid(. ~ bmicat) + geom_smooth(method = "lm")
+```
+
+Anotación
+- Etiquetas: `xlab ()`, `ylab ()`, `labs ()`, `ggtitle ()`
+- Cada una de las funciones "geom" tiene opciones para modificar
+- Para cosas que solo tienen sentido globalmente, use `theme()`
+    - Ejemplo: `theme(legend.position =" none ")`
+- Se incluyen dos temas de apariencia estándar
+    - `theme_gray()`: El tema predeterminado (fondo gris)
+    - `theme_bw()`: Más rígido / llano
+
+modificando los esteticos 
+
+```{r, fig.width=4.5}
+g + geom_point(color = "steelblue", size = 4, alpha = 1/2)
+g + geom_point(aes(color = bmicat), size = 4, alpha = 1/2)
+```
+
+modificando las leyendas 
+
+```{r}
+g + geom_point(aes(color = bmicat)) + labs(title = "MAACS Cohort") + 
+  labs(x = expression("log " * PM[2.5]), y = "Nocturnal Symptoms")
+```
+
+personalizacion de la linea 
+
+```{r}
+g + geom_point(aes(color = bmicat), size = 2, alpha = 1/2) + 
+  geom_smooth(size = 4, linetype = 3, method = "lm", se = FALSE)
+```
+
+cambiando el tema 
+
+```{r}
+g + geom_point(aes(color = bmicat)) + theme_bw(base_family = "Times")
+```
+
+comparacion de el manejo de ejes entre base y ggplot2 
+
+```{r, fig.width=4.5, fig.height=3}
+testdat <- data.frame(x = 1:100, y = rnorm(100))
+testdat[50,2] <- 100  ## Outlier!
+plot(testdat$x, testdat$y, type = "l", ylim = c(-3,3))
+
+g <- ggplot(testdat, aes(x = x, y = y))
+g + geom_line()
+```
+definiendo los limites 
+
+```{r, fig.width=4.5}
+g + geom_line() + ylim(-3, 3)
+g + geom_line() + coord_cartesian(ylim = c(-3, 3))
+```
+
+
+###  Ejemplo más complejo
+
+- ¿Cómo varía la relación entre PM$_{2.5}$ y los síntomas nocturnos según el IMC y NO $_2$?
+- A diferencia de nuestra variable anterior de IMC, NO $_2$ es continuo
+- Necesitamos hacer que NO $_2$ sea categórico para que podamos condicionarlo en el trazado
+- Utilice la función `cut()` para esto
+
+
+```{r}
+## Calculate the tertiles of the data
+cutpoints <- quantile(maacs$logno2_new, seq(0, 1, length = 4), na.rm = TRUE)
+
+## Cut the data at the tertiles and create a new factor variable
+maacs$no2tert <- cut(maacs$logno2_new, cutpoints)
+
+## See the levels of the newly created factor variable
+levels(maacs$no2tert)
+```
+
+
+```{r, fig.width=9, fig.height=5,eval=FALSE}
+
+## Setup ggplot with data frame
+g <- ggplot(maacs, aes(logpm25, NocturnalSympt))
+
+## Add layers
+g + geom_point(alpha = 1/3) + 
+  facet_wrap(bmicat ~ no2tert, nrow = 2, ncol = 4) + 
+  geom_smooth(method="lm", se=FALSE, col="steelblue") + 
+  theme_bw(base_family = "Avenir", base_size = 10) 
+
+library(ggplot2)
+```
+
+
+## Resumen y recursos 
+
+- La función `qplot ()` es análoga a `plot()` pero con muchas características integradas
+- Sintaxis en algún lugar entre base / lattice
+- Produce gráficos muy agradables, esencialmente listos para publicación (si te gusta el diseño)
+- Difícil de ir contra la corriente / personalizar (no se moleste; use toda la potencia de ggplot2 en ese caso)
+
+- El libro _ggplot2_ de Hadley Wickham
+- El _R Graphics Cookbook_ de Winston Chang (ejemplos en gráficos base y en ggplot2)
+- sitio web ggplot2 (http://ggplot2.org)
+- lista de correo ggplot2 (http://goo.gl/OdW3uB), principalmente para desarrolladores

@@ -1,0 +1,178 @@
+---
+title: "power"
+author: "luis manuel"
+date: "18/3/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+En esta lección, como sugiere el nombre, discutiremos el PODER, que es la probabilidad de rechazar la hipótesis nula cuando es falsa, lo cual es bueno y apropiado. Por lo tanto, quieres más PODER.
+
+El poder entra en juego cuando está diseñando un experimento y, en particular, si está tratando de determinar si un resultado nulo (no rechazar una hipótesis nula) es significativo. Por ejemplo, es posible que deba determinar si el tamaño de su muestra era lo suficientemente grande como para producir un resultado significativo, en lugar de aleatorio.
+El poder te da la oportunidad de detectar si tu hipótesis ALTERNATIVA es cierta.
+
+Beta es la probabilidad de un error de Tipo II, aceptando una hipótesis nula falsa; el complemento de esto es obviamente (1 - beta) que representa la probabilidad de rechazar una hipótesis nula falsa. ¡Esto es bueno y esto es PODER!
+
+Recuerde nuestro ejemplo anterior sobre el índice de dificultad respiratoria y las alteraciones del sueño. Nuestra hipótesis nula H_0 fue que mu = 30 y nuestra hipótesis alternativa H_a fue que mu> 30.
+
+Suponga que estamos probando una hipótesis nula H_0 con un nivel alfa de .05. Dado que H_a propone que mu> 30 (la media hipotetizada por H_0), la potencia es la probabilidad de que la media verdadera mu sea mayor que el cuantil (1-alfa) o qnorm (.95). Para simplificar, suponga que estamos trabajando con distribuciones normales cuyas varianzas conocemos.
+
+Aquí está la imagen que hemos usado mucho en estas lecciones. Como sabe, la parte sombreada representa el 5% del área debajo de la curva. Si un estadístico de prueba cayera en esta porción sombreada, rechazaríamos H_0 porque la media de la muestra está demasiado lejos de la media (centro) de la distribución hipotetizada por H_0. En cambio, favoreceríamos H_a, que mu> 30. Esto sucede con una probabilidad de .05.
+
+```{r ,echo=FALSE,fig.cap="A caption",out.width='100%'} 
+knitr::include_graphics("C:/Users/luism/Documents/pow_1.png")
+```
+
+Bien podría preguntar: "¿Qué tiene esto que ver con el PODER?" Buena pregunta. Veremos algunas fotos para mostrártelas.
+  Primero tenemos que enfatizar un punto clave. Las dos hipótesis, H_0 y H_a, en realidad representan dos distribuciones ya que están hablando de medias o centros de distribuciones. H_0 dice que la media es mu_0 (30 en nuestro ejemplo) y H_a dice que la media es mu_a.
+
+  Estamos asumiendo normalidad e igual varianza, digamos sigma ^ 2 / n, para ambas hipótesis, entonces bajo H_0, X '~ N (mu_0, sigma ^ 2 / n) y bajo H_a, X' ~ N (mu_a, sigma ^ 2 / n).
+
+  Aquí hay una imagen con las dos distribuciones. Dibujamos una línea vertical en nuestro lugar favorito, en el percentil 95 de la distribución roja. A la derecha de la línea se encuentra el 5% de la distribución roja.
+```{r ,echo=FALSE,fig.cap="A caption",out.width='100%'} 
+knitr::include_graphics("C:/Users/luism/Documents/pow_2.png")
+```
+
+¿Ves qué parte de la distribución azul se encuentra a la derecha de esa gran línea vertical?
+
+¡Eso, amigo mío, es PODER!
+
+Es el área debajo de la curva azul (H_a) a la derecha de la línea vertical.
+
+Tenga en cuenta que la ubicación de la línea vertical depende de la distribución nula. ahora esta la siguiente funcion que hace las graficas 
+```{r}
+myplot<-function(mua) {
+  g = ggplot(data.frame(mu = c(27, 36)), aes(x = mu))
+  g = g + stat_function(fun=dnorm, geom = "line", 
+                        args = list(mean = mu0, sd = sigma / sqrt(n)), 
+                        size = 2, col = "red")
+  g = g + stat_function(fun=dnorm, geom = "line", 
+                        args = list(mean = mua, sd = sigma / sqrt(n)), 
+                        size = 2, col = "blue")
+  xitc = mu0 + qnorm(1 - alpha) * sigma / sqrt(n)
+  g = g + geom_vline(xintercept=xitc, size = 3)
+  print(g)
+  invisible()
+}
+myplot(34)
+```
+
+La distribución representada por H_a se movió hacia la derecha, por lo que casi toda (100%) de la curva azul está a la derecha de la línea vertical, lo que indica que con mu_a = 34, la prueba es más poderosa, es decir, hay una mayor probabilidad de que es correcto rechazar la hipótesis nula ya que parece falsa. Ahora pruebe myplot con un argumento de 33,3.
+
+```{r}
+myplot(33.3)
+```
+
+Esto no es tan poderoso como la prueba con mu_a = 34 pero hace una bonita imagen. Ahora pruebe myplot con un argumento de 30.
+
+```{r}
+myplot(30)
+```
+
+¡UH oh! ¿Desapareció la curva roja? No. Está justo debajo de la curva azul. ¡La potencia ahora, el área debajo de la curva azul a la derecha de la línea, es exactamente 5% o alfa!
+  Entonces ¿Que aprendimos?
+Primero, la potencia es una función que depende de un valor específico de una media alternativa, mu_a, que es cualquier valor mayor que mu_0, la media hipotetizada por H_0. (Recuerde que H_a especificó mu> 30).
+
+En segundo lugar, si mu_a es mucho mayor que mu_0 = 30, entonces la potencia (probabilidad) es mayor que si mu_a está cerca de 30. Cuando mu_a se acerca a 30, la media bajo H_0, la potencia se acerca a alfa.
+
+Solo por diversión, prueba myplot con un argumento de 28.
+
+```{r}
+myplot(28)
+```
+
+Vemos que la curva azul se ha movido a la izquierda de la roja, por lo que el área debajo de ella, a la derecha de la línea, es menor que el 5% debajo de la curva roja. Entonces, esto es incluso menos poderoso y contradice a H_a, por lo que no vale la pena mirarlo.
+Aquí hay una imagen de las curvas de potencia para diferentes tamaños de muestra. Nuevamente, esto usa código "prestado" de las diapositivas. Los medios alternativos, los mu_a, se trazan a lo largo del eje horizontal y la potencia a lo largo del vertical.
+
+```{r, echo = TRUE, eval=FALSE}
+library(manipulate)
+mu0 = 30
+myplot <- function(sigma, mua, n, alpha){
+    g = ggplot(data.frame(mu = c(27, 36)), aes(x = mu))
+    g = g + stat_function(fun=dnorm, geom = "line", 
+                          args = list(mean = mu0, sd = sigma / sqrt(n)), 
+                          size = 2, col = "red")
+    g = g + stat_function(fun=dnorm, geom = "line", 
+                          args = list(mean = mua, sd = sigma / sqrt(n)), 
+                          size = 2, col = "blue")
+    xitc = mu0 + qnorm(1 - alpha) * sigma / sqrt(n)
+    g = g + geom_vline(xintercept=xitc, size = 3)
+    g
+}
+manipulate(
+    myplot(sigma, mua, n, alpha),
+    sigma = slider(1, 10, step = 1, initial = 4),
+    mua = slider(30, 35, step = 1, initial = 32),
+    n = slider(1, 50, step = 1, initial = 16),
+    alpha = slider(0.01, 0.1, step = 0.01, initial = 0.05)
+    )
+
+```
+hemos visto que a mayor mu_a y mayor n el poder es mayor 
+Ahora volvamos a los números. Nuestra prueba para determinar el rechazo de H_0 implicó comparar una estadística de prueba, a saber, Z = (X'-30) / (sigma / sqrt (n)), con algún cuantil, digamos Z_95, que dependía de nuestro tamaño de nivel alfa (.05 en este caso). H_a propuso que mu> mu_0, así que probamos si Z> Z_95. Esto es equivalente a X '> Z_95 * (sigma / sqrt (n)) + 30, ¿verdad?
+
+Recuerde esa ingeniosa función R pnorm, que nos da la probabilidad de que un valor extraído de una distribución normal sea mayor o menor que / igual a un argumento cuantílico especificado dependiendo de la bandera lower.tail. La función también toma una desviación estándar y media como argumentos.
+
+Supongamos que llamamos a pnorm con el cuantil 30 + Z_95 * (sigma / sqrt (n)) y especificamos mu_a como nuestro argumento medio. Esto devolvería una probabilidad que podemos interpretar como POTENCIA. ¿Por qué?
+
+  Recuerde nuestra imagen de dos distribuciones. 30 + Z_95 * (sigma / sqrt (n)) representa el punto en el que cae nuestra línea vertical. Es el punto de la distribución nula en el nivel (1-alfa)
+```{r}
+z <- qnorm(.95)
+pnorm(30+z,mean=30,lower.tail=FALSE)
+pnorm(30+z,mean=32,lower.tail=FALSE)
+```
+¿Ves cómo esto es mucho más poderoso? 64% frente al 5%. Cuando la media muestral es bastante diferente de (muchos errores estándar mayores que) la media hipotetizada por la hipótesis nula, la probabilidad de rechazar H_0 cuando es falsa es mucho mayor. ¡Eso es poder!
+```{r ,echo=FALSE,fig.cap="A caption",out.width='100%'} 
+knitr::include_graphics("C:/Users/luism/Documents/pow_3.png")
+```
+Veamos de nuevo las distribuciones corpulentas.
+
+ Con esta desviación estándar = 2 (distribución más gruesa), la potencia será  menos que con la desviación estándar = 1
+```{r}
+pnorm(30+z*2,mean=32,sd=2,lower.tail=FALSE)
+``` 
+```{r ,echo=FALSE,fig.cap="A caption",out.width='100%'} 
+knitr::include_graphics("C:/Users/luism/Documents/pow_4.png")
+```
+
+con una mayor varianza  el poder decrece 
+
+```{r ,echo=FALSE,fig.cap="A caption",out.width='100%'} 
+knitr::include_graphics("C:/Users/luism/Documents/pow_5.png")
+```
+
+con una mayor $\alpha$ tenemos mayor poder 
+
+Entonces sabemos que las cantidades mu_0 y alpha las especifica el diseñador de la prueba. En la declaración 1 - beta = Prob (X '> mu_0 + z_ (1-alpha) * sigma / sqrt (n)) dado mu_a> mu_0, se especifican mu_0 y alpha, y X' depende de los datos. Las otras cuatro cantidades (beta, sigma, ny mu_a) son todas desconocidas.
+
+Debería ser obvio que especificar tres de estas incógnitas nos permitirá resolver el cuarto que falta. Por lo general, solo intenta resolver la potencia (1-beta) o el tamaño de muestra n.
+
+Un punto interesante es que el poder no necesita mu_a, sigma yn individualmente. En su lugar, solo se necesita sqrt (n) * (mu_a - mu_0) / sigma. La cantidad (mu_a - mu_0) / sigma se llama TAMAÑO DEL EFECTO. Ésta es la diferencia en las medias en unidades de desviación estándar. No tiene unidades, por lo que se puede interpretar en diferentes entornos.
+
+Trabajaremos con algunos ejemplos de esto ahora. Sin embargo, en lugar de asumir que estamos trabajando con distribuciones normales, trabajemos con distribuciones t. Recuerde, están bastante cerca de lo normal con tamaños de muestra lo suficientemente grandes.
+
+ El poder sigue siendo una probabilidad, a saber, P ((X '- mu_0) / (S / sqrt (n))> t_ (1-alpha, n-1) dado H_a que mu> mu_a). Observe que usamos el cuantil t en lugar de z. Además, dado que la distribución propuesta no está centrada en mu_0, tenemos que usar la distribución t no central.
+
+R vuelve al rescate con la función power.t.test. Podemos omitir uno de los argumentos y la función lo resuelve. Primero usémoslo para resolver el poder.
+
+ Lo ejecutaremos tres veces con los mismos valores para n (16) y alfa (.05) pero diferentes valores delta y desviación estándar. Mostraremos que si delta (diferencia de medias) dividida por la desviación estándar es la misma, la potencia devuelta también será la misma. En otras palabras, el tamaño del efecto es constante para las tres pruebas.
+
+ Especificaremos un delta positivo; esto le dice a power.t.test que H_a propone que mu> mu_0 y que necesitaremos una prueba unilateral. Primero ejecute power.t.test (n = 16, delta = 2/4, sd = 1, type = "one.sample", alt = "one.sided") $ power.
+```{r}
+power.t.test(n = 16, delta = 2 / 4, sd=1, type = "one.sample", alt = "one.sided")$power
+power.t.test(n = 16, delta = 2 , sd=4, type = "one.sample", alt = "one.sided")$power
+power.t.test(n = 16, delta = 100 , sd=200, type = "one.sample", alt ="one.sided")$power
+```
+
+Por lo tanto, mantener constante el tamaño del efecto (la relación delta / sd) conservaba la potencia. Intentemos un experimento similar excepto que ahora especificaremos una potencia que queremos y resolveremos para el tamaño de muestra n.
+
+```{r}
+power.t.test(power = .8, delta = 2 / 4, sd=1, type = "one.sample",  alt = "one.sided")$n
+power.t.test(power = .8, delta = 2, sd=4, type = "one.sample",  alt = "one.sided")$n
+power.t.test(power = .8, delta = 100, sd=200, type = "one.sample", alt = "one.sided")$n
+power.t.test(power = .8, n=26, sd=1, type = "one.sample", alt = "one.sided")$delta
+power.t.test(power = .8, n=27, sd=1, type = "one.sample", alt = "one.sided")$delta
+```
