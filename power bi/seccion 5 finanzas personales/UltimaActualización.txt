@@ -1,0 +1,1 @@
+= #table(type table[Ultima Actualización=datetime], {{DateTime.LocalNow()}})
