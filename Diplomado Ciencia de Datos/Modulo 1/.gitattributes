@@ -1,0 +1,5 @@
+*.csv filter=lfs diff=lfs merge=lfs -text
+G21-M1/Data/calidad_datos/data_jalisco.csv filter=lfs diff=lfs merge=lfs -text
+G21-M1/Prácticas/practica_2/solucion/practica/[[:space:]]2/2022_03_data_airbnb_v2.pkl filter=lfs diff=lfs merge=lfs -text
+G21-M1/Prácticas/practica_2/solucion/practica/[[:space:]]2/2022_03_data_airbnb_v2.pkl filter=lfs diff=lfs merge=lfs -text
+*.pkl filter=lfs diff=lfs merge=lfs -text
